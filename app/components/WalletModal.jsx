@@ -1,7 +1,10 @@
 "use client";
 
 
-import { useEffect, useRef } from "react";
+import {
+  useEffect,
+  useRef,
+} from "react";
 
 
 import {
@@ -58,7 +61,13 @@ const connectingRef = useRef(false);
 
 
 
-const tronWallet = wallets.find((item)=>{
+// 找 TronLink Adapter
+
+
+function findTronLink(){
+
+
+return wallets.find((item)=>{
 
 
 return item.adapter.name
@@ -69,6 +78,7 @@ return item.adapter.name
 });
 
 
+}
 
 
 
@@ -76,11 +86,18 @@ return item.adapter.name
 
 
 
-function chooseTronLink(){
+// 用户点击 TronLink
+
+
+function handleClick(){
 
 
 
-if(!tronWallet){
+const target = findTronLink();
+
+
+
+if(!target){
 
 
 onError?.(
@@ -96,7 +113,7 @@ return;
 
 
 select(
-tronWallet.adapter.name
+target.adapter.name
 );
 
 
@@ -111,6 +128,8 @@ tronWallet.adapter.name
 
 
 
+// select 完成以后 connect
+
 
 useEffect(()=>{
 
@@ -124,19 +143,7 @@ return;
 
 
 
-if(
-!wallet?.adapter?.name
-){
-
-return;
-
-}
-
-
-
-if(
-connectingRef.current
-){
+if(!wallet?.adapter?.name){
 
 return;
 
@@ -145,12 +152,25 @@ return;
 
 
 
-
 if(
-wallet.adapter.name
+!wallet.adapter.name
 .toLowerCase()
 .includes("tronlink")
 ){
+
+return;
+
+}
+
+
+
+
+if(connectingRef.current){
+
+return;
+
+}
+
 
 
 
@@ -158,7 +178,8 @@ connectingRef.current=true;
 
 
 
-async function startConnect(){
+async function run(){
+
 
 
 try{
@@ -179,6 +200,7 @@ onError?.(
 );
 
 
+
 }finally{
 
 
@@ -193,11 +215,7 @@ connectingRef.current=false;
 
 
 
-startConnect();
-
-
-
-}
+run();
 
 
 
@@ -221,6 +239,9 @@ onError
 
 
 
+// 连接成功
+
+
 useEffect(()=>{
 
 
@@ -228,7 +249,6 @@ if(
 connected &&
 address
 ){
-
 
 
 onConnected?.({
@@ -269,6 +289,7 @@ onClose
 
 
 
+
 if(!open){
 
 
@@ -276,8 +297,6 @@ return null;
 
 
 }
-
-
 
 
 
@@ -299,11 +318,15 @@ return (
 
 
 
+
 <img
+
 
 src="/tronlink-global.png"
 
+
 className="w-24 h-24 mx-auto rounded-2xl"
+
 
 />
 
@@ -324,9 +347,11 @@ className="w-24 h-24 mx-auto rounded-2xl"
 
 
 
+
+
 <p className="text-gray-400 mt-4">
 
-请选择连接您的TRON钱包
+使用安全方式连接您的TRON钱包
 
 </p>
 
@@ -340,10 +365,11 @@ className="w-24 h-24 mx-auto rounded-2xl"
 <button
 
 
+onClick={handleClick}
+
+
 disabled={connecting}
 
-
-onClick={chooseTronLink}
 
 
 className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
@@ -351,7 +377,6 @@ className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-4
 
 
 >
-
 
 
 {
@@ -378,12 +403,15 @@ connecting
 
 
 
-
 <button
+
 
 onClick={onClose}
 
+
 className="mt-5 text-gray-400"
+
+
 
 >
 
@@ -392,7 +420,6 @@ className="mt-5 text-gray-400"
 
 
 </button>
-
 
 
 
@@ -408,7 +435,6 @@ className="mt-5 text-gray-400"
 
 
 );
-
 
 
 }
