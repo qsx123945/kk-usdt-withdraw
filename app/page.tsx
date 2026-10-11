@@ -549,31 +549,29 @@ throw new Error(
 // ===========================
 
 
-localStorage.setItem(
+await fetch("/api/claim",{
 
-"kk_claim_record",
+method:"POST",
 
+headers:{
 
-JSON.stringify({
+"Content-Type":"application/json"
 
-address:
-walletAddress,
+},
 
+body:JSON.stringify({
+
+address:walletAddress,
 
 amount,
 
-
 txId,
 
-
-time:
-new Date()
-.toISOString()
-
+time:new Date().toISOString()
 
 })
 
-);
+});
 
 
 
