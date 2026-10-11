@@ -231,10 +231,9 @@ setMsg(
 
 
 
-const tronWeb = new TronWeb({
-
+const tronWeb =
+TronWeb({
 fullHost: TRON_FULL_HOST
-
 });
 
 
