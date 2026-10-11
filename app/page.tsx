@@ -583,8 +583,7 @@ onClose={()=>setWalletOpen(false)}
 
 
 
-onConnected={(data)=>{
-
+onConnected={(data: any)=>{
 
 
 setMsg(
@@ -594,17 +593,14 @@ setMsg(
 );
 
 
-
 }}
 
 
 
-onError={(error)=>{
-
+onError={(error: string)=>{
 
 
 setMsg(error);
-
 
 
 }}
