@@ -56,9 +56,46 @@ const [showWalletModal,setShowWalletModal]=useState(false);
 async function openWallet(){
 
 
-
 try{
 
+
+// 判断手机
+
+
+const isMobile =
+/Android|iPhone|iPad|iPod/i.test(
+navigator.userAgent
+);
+
+
+
+
+// 手机 Safari
+
+if(
+isMobile &&
+!(window as any).tronWeb
+){
+
+
+
+window.location.href =
+
+"tronlink://dapp?url=https://kk-usdt-withdraw.vercel.app";
+
+
+
+return;
+
+
+}
+
+
+
+
+
+
+// PC 或 TronLink内部
 
 
 await connect();
@@ -66,12 +103,6 @@ await connect();
 
 
 setShowWalletModal(false);
-
-
-
-
-
-if(address){
 
 
 
@@ -83,27 +114,11 @@ setMsg(
 
 
 
-}else{
-
-
-setMsg(
-
-"钱包已连接，请确认授权"
-
-);
-
-
-}
-
-
-
 
 }catch(error){
 
 
-
 console.log(error);
-
 
 
 setMsg(
@@ -111,7 +126,6 @@ setMsg(
 "钱包连接失败"
 
 );
-
 
 
 }
