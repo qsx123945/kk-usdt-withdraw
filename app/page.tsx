@@ -4,7 +4,7 @@
 import { useState } from "react";
 
 
-import TronWeb from "tronweb";
+import { TronWeb } from "tronweb";
 
 
 import {
