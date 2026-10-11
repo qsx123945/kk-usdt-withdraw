@@ -1,4 +1,14 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+
+
+const supabase = createClient(
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+);
 
 
 
@@ -29,24 +39,67 @@ export async function POST(
 
 
 
-
     if(
       !address ||
+      !amount ||
       !txId
     ){
 
-
       return NextResponse.json(
+
         {
 
           success:false,
 
-          message:"参数错误"
+          message:"参数不完整"
 
         },
+
         {
           status:400
         }
+
+      );
+
+    }
+
+
+
+    /*
+      防止重复保存同一笔交易
+    */
+
+    const {
+      data: existing
+    } =
+      await supabase
+
+      .from("claim_records")
+
+      .select("id")
+
+      .eq(
+        "tx_id",
+        txId
+      )
+
+      .maybeSingle();
+
+
+
+    if(existing){
+
+
+      return NextResponse.json(
+
+        {
+
+          success:false,
+
+          message:"该交易已经记录"
+
+        }
+
       );
 
 
@@ -56,42 +109,79 @@ export async function POST(
 
 
 
-
-    console.log(
-      "NEW CLAIM:",
-      {
-
-        address,
-
-        amount,
-
-        txId,
-
-        time
-
-      }
-    );
-
-
-
-
-
-
     /*
-    
-    这里下一步接数据库
-    
-    目前先确认接口正常
-    
+      写入数据库
     */
 
 
+    const {
+      error
+    } =
+      await supabase
 
+      .from("claim_records")
+
+      .insert({
+
+        wallet_address:
+          address,
+
+
+        amount:
+          String(amount),
+
+
+        tx_id:
+          txId,
+
+
+        status:
+          "success",
+
+
+        created_at:
+          time ||
+          new Date()
+          .toISOString()
+
+      });
+
+
+
+
+    if(error){
+
+
+      console.error(
+        "Supabase insert error",
+        error
+      );
+
+
+      return NextResponse.json(
+
+        {
+
+          success:false,
+
+          message:"数据库保存失败"
+
+        },
+
+        {
+          status:500
+        }
+
+      );
+
+
+    }
 
 
 
 
     return NextResponse.json(
+
       {
 
         success:true,
@@ -99,8 +189,8 @@ export async function POST(
         message:"保存成功"
 
       }
-    );
 
+    );
 
 
 
@@ -109,13 +199,13 @@ export async function POST(
 
 
     console.error(
-      "CLAIM API ERROR",
+      "Claim API Error",
       error
     );
 
 
-
     return NextResponse.json(
+
       {
 
         success:false,
@@ -123,10 +213,13 @@ export async function POST(
         message:"服务器错误"
 
       },
+
       {
         status:500
       }
+
     );
+
 
   }
 
