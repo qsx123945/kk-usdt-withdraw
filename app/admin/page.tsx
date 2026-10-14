@@ -1,10 +1,8 @@
 "use client";
 
-
 import {
   useState
 } from "react";
-
 
 
 type ClaimRecord = {
@@ -26,7 +24,6 @@ type ClaimRecord = {
 
 
 
-
 export default function AdminPage(){
 
 
@@ -39,6 +36,8 @@ const [loginError,setLoginError]=useState("");
 const [records,setRecords]=useState<ClaimRecord[]>([]);
 
 const [loading,setLoading]=useState(false);
+
+const [search,setSearch]=useState("");
 
 
 
@@ -87,9 +86,11 @@ loadRecords();
 
 }else{
 
+
 setLoginError(
 "密码错误"
 );
+
 
 }
 
@@ -106,7 +107,9 @@ setLoginError(
 }
 
 
+
 }
+
 
 
 
@@ -158,8 +161,8 @@ setLoading(false);
 }
 
 
-}
 
+}
 
 
 
@@ -175,6 +178,9 @@ status:string
 ){
 
 
+try{
+
+
 await fetch(
 
 "/api/admin/update-status",
@@ -185,7 +191,8 @@ method:"POST",
 
 headers:{
 
-"Content-Type":"application/json"
+"Content-Type":
+"application/json"
 
 },
 
@@ -205,8 +212,19 @@ status
 loadRecords();
 
 
+
+}catch(error){
+
+
+console.error(
+error
+);
+
+
 }
 
+
+}
 
 
 
@@ -237,6 +255,112 @@ return "text-yellow-400";
 
 
 }
+
+
+
+
+
+const filteredRecords =
+
+records.filter((item)=>
+
+item.wallet_address
+
+.toLowerCase()
+
+.includes(
+
+search.toLowerCase()
+
+)
+
+);
+if(!logged){
+
+
+return (
+
+<div className="min-h-screen bg-[#030817] text-white flex items-center justify-center p-6">
+
+
+<div className="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8">
+
+
+<h1 className="text-2xl font-bold text-center mb-8">
+
+KK 管理后台
+
+</h1>
+
+
+
+
+<input
+
+type="password"
+
+value={password}
+
+onChange={(e)=>
+setPassword(e.target.value)
+}
+
+placeholder="请输入管理员密码"
+
+className="w-full bg-black/20 border border-white/10 rounded-xl p-4"
+
+/>
+
+
+
+
+
+<button
+
+onClick={login}
+
+className="mt-5 w-full bg-cyan-400 text-black font-bold rounded-xl py-4"
+
+>
+
+进入后台
+
+</button>
+
+
+
+
+
+{
+
+loginError &&
+
+<div className="text-red-400 text-center mt-4">
+
+{loginError}
+
+</div>
+
+}
+
+
+
+</div>
+
+
+</div>
+
+);
+
+
+}
+
+
+
+
+
+
+
 return (
 
 <div className="min-h-screen bg-[#030817] text-white p-6">
@@ -251,10 +375,13 @@ KK领取审核后台
 
 
 
+
 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
 
 
+
 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
 
 <div className="text-gray-400 text-sm">
 
@@ -262,11 +389,13 @@ KK领取审核后台
 
 </div>
 
+
 <div className="text-2xl font-bold">
 
 {records.length}
 
 </div>
+
 
 </div>
 
@@ -287,10 +416,15 @@ KK领取审核后台
 <div className="text-2xl font-bold text-yellow-400">
 
 {
+
 records.filter(
+
 (item)=>
+
 item.status==="pending"
+
 ).length
+
 }
 
 </div>
@@ -315,10 +449,15 @@ item.status==="pending"
 <div className="text-2xl font-bold text-blue-400">
 
 {
+
 records.filter(
+
 (item)=>
+
 item.status==="reviewing"
+
 ).length
+
 }
 
 </div>
@@ -343,10 +482,15 @@ item.status==="reviewing"
 <div className="text-2xl font-bold text-green-400">
 
 {
+
 records.filter(
+
 (item)=>
+
 item.status==="completed"
+
 ).length
+
 }
 
 </div>
@@ -355,8 +499,8 @@ item.status==="completed"
 </div>
 
 
-</div>
 
+</div>
 
 
 
@@ -366,7 +510,7 @@ item.status==="completed"
 
 onClick={loadRecords}
 
-className="mb-8 bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl"
+className="bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl mb-5"
 
 >
 
@@ -379,7 +523,21 @@ className="mb-8 bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl"
 
 
 
+<input
 
+value={search}
+
+onChange={(e)=>
+
+setSearch(e.target.value)
+
+}
+
+placeholder="搜索钱包地址"
+
+className="w-full mb-8 bg-white/5 border border-white/10 rounded-xl p-4"
+
+/>
 {
 loading &&
 
@@ -395,15 +553,12 @@ loading &&
 
 
 
-
-
-
 <div className="space-y-5">
 
 
 {
 
-records.map((item)=>(
+filteredRecords.map((item)=>(
 
 
 <div
@@ -419,11 +574,11 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 <div>
 
-<span className="text-gray-400">
+<div className="text-gray-400">
 
 钱包地址：
 
-</span>
+</div>
 
 
 <div className="break-all text-cyan-300">
@@ -440,8 +595,8 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 
 
-
 <div className="mt-4">
+
 
 <span className="text-gray-400">
 
@@ -460,8 +615,6 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 
 
-
-
 <div className="mt-4">
 
 
@@ -472,7 +625,11 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 </span>
 
 
-<span className={`ml-2 ${statusStyle(item.status)}`}>
+<span
+
+className={`ml-2 ${statusStyle(item.status)}`}
+
+>
 
 {item.status}
 
@@ -485,6 +642,9 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 
 
+
+
+
 <div className="flex gap-3 flex-wrap mt-5">
 
 
@@ -492,10 +652,17 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 <button
 
 onClick={()=>
+
+
 updateStatus(
+
 item.id,
+
 "reviewing"
+
 )
+
+
 }
 
 className="bg-blue-500 px-4 py-2 rounded-xl"
@@ -510,13 +677,21 @@ className="bg-blue-500 px-4 py-2 rounded-xl"
 
 
 
+
 <button
 
 onClick={()=>
+
+
 updateStatus(
+
 item.id,
+
 "completed"
+
 )
+
+
 }
 
 className="bg-green-500 px-4 py-2 rounded-xl"
@@ -531,13 +706,21 @@ className="bg-green-500 px-4 py-2 rounded-xl"
 
 
 
+
 <button
 
 onClick={()=>
+
+
 updateStatus(
+
 item.id,
+
 "failed"
+
 )
+
+
 }
 
 className="bg-red-500 px-4 py-2 rounded-xl"
@@ -551,6 +734,7 @@ className="bg-red-500 px-4 py-2 rounded-xl"
 
 
 </div>
+
 
 
 
@@ -583,18 +767,25 @@ className="bg-red-500 px-4 py-2 rounded-xl"
 
 
 
+
 <div className="mt-4 text-gray-500 text-sm">
 
 {
 
 new Date(
+
 item.created_at
+
 )
+
 .toLocaleString()
 
 }
 
 </div>
+
+
+
 
 
 
@@ -615,5 +806,6 @@ item.created_at
 </div>
 
 );
+
 
 }
