@@ -1,134 +1,88 @@
 "use client";
 
-
-import { useMemo } from "react";
-
+import { useState, useEffect } from "react";
 
 import {
-  WalletProvider,
+  WalletProvider
 } from "@tronweb3/tronwallet-adapter-react-hooks";
 
 
 import {
+  TronLinkAdapter
+} from "@tronweb3/tronwallet-adapter-tronlink";
 
-  TronLinkAdapter,
 
-  TokenPocketAdapter,
-
-  OkxWalletAdapter,
-
-  ImTokenAdapter,
-
-} from "@tronweb3/tronwallet-adapters";
+import {
+  TokenPocketAdapter
+} from "@tronweb3/tronwallet-adapter-token-pocket";
 
 
 
-
-
-export default function AppWalletProvider({
-
-children,
-
+export default function WalletProviderWrapper({
+  children
 }) {
 
 
+  const [adapters,setAdapters] = useState([]);
 
-const adapters = useMemo(()=>{
 
 
-return [
+  useEffect(()=>{
 
 
-new TronLinkAdapter(),
+    const tronLink =
+      new TronLinkAdapter();
 
 
-new TokenPocketAdapter({
 
-openUrlWhenWalletNotFound:true,
+    const tokenPocket =
+      new TokenPocketAdapter({
 
-openAppWithDeeplink:true,
+        openUrlWhenWalletNotFound:true
 
-}),
+      });
 
 
 
-new OkxWalletAdapter({
+    setAdapters([
+      tronLink,
+      tokenPocket
+    ]);
 
-openUrlWhenWalletNotFound:true,
 
-openAppWithDeeplink:true,
 
-}),
+  },[]);
 
 
 
-new ImTokenAdapter({
 
-openUrlWhenWalletNotFound:true,
 
-openAppWithDeeplink:true,
+  if(adapters.length===0){
 
-}),
+    return (
+      <>
+        {children}
+      </>
+    );
 
+  }
 
 
-];
 
 
 
-},[]);
+  return (
 
+    <WalletProvider
+      adapters={adapters}
+      autoConnect={true}
+    >
 
+      {children}
 
+    </WalletProvider>
 
-
-function handleWalletError(error){
-
-
-console.log(
-
-"[Wallet Error]",
-
-error
-
-);
-
-
-}
-
-
-
-
-
-return (
-
-
-<WalletProvider
-
-
-adapters={adapters}
-
-
-autoConnect={false}
-
-
-disableAutoConnectOnLoad={true}
-
-
-onError={handleWalletError}
-
-
->
-
-
-{children}
-
-
-</WalletProvider>
-
-
-
-);
+  );
 
 
 }
