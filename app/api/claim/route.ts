@@ -2,22 +2,52 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 
-const supabase = createClient(
-
-  process.env.SUPABASE_URL!,
-
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-);
-
-
-
 export async function POST(
   request: Request
 ) {
 
-
   try {
+
+
+    const supabaseUrl =
+      process.env.SUPABASE_URL;
+
+
+    const supabaseKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+
+
+    if(
+      !supabaseUrl ||
+      !supabaseKey
+    ){
+
+      console.error(
+        "Missing Supabase environment variables"
+      );
+
+
+      return NextResponse.json(
+        {
+          success:false,
+          message:"服务器配置错误"
+        },
+        {
+          status:500
+        }
+      );
+
+    }
+
+
+
+    const supabase =
+      createClient(
+        supabaseUrl,
+        supabaseKey
+      );
+
 
 
     const body =
@@ -26,15 +56,10 @@ export async function POST(
 
 
     const {
-
       address,
-
       amount,
-
       txId,
-
       time
-
     } = body;
 
 
@@ -46,31 +71,23 @@ export async function POST(
     ){
 
       return NextResponse.json(
-
         {
-
           success:false,
-
           message:"参数不完整"
-
         },
-
         {
           status:400
         }
-
       );
 
     }
 
 
 
-    /*
-      防止重复保存同一笔交易
-    */
 
     const {
-      data: existing
+      data: existing,
+      error: checkError
     } =
       await supabase
 
@@ -87,31 +104,30 @@ export async function POST(
 
 
 
-    if(existing){
+    if(checkError){
 
-
-      return NextResponse.json(
-
-        {
-
-          success:false,
-
-          message:"该交易已经记录"
-
-        }
-
+      console.error(
+        "Supabase check error",
+        checkError
       );
-
 
     }
 
 
 
+    if(existing){
+
+      return NextResponse.json(
+        {
+          success:false,
+          message:"该交易已经记录"
+        }
+      );
+
+    }
 
 
-    /*
-      写入数据库
-    */
+
 
 
     const {
@@ -148,9 +164,7 @@ export async function POST(
 
 
 
-
     if(error){
-
 
       console.error(
         "Supabase insert error",
@@ -159,43 +173,29 @@ export async function POST(
 
 
       return NextResponse.json(
-
         {
-
           success:false,
-
-          message:"数据库保存失败"
-
+          message:error.message
         },
-
         {
           status:500
         }
-
       );
-
 
     }
 
 
 
-
     return NextResponse.json(
-
       {
-
         success:true,
-
         message:"保存成功"
-
       }
-
     );
 
 
 
-
-  }catch(error){
+  }catch(error:any){
 
 
     console.error(
@@ -205,23 +205,16 @@ export async function POST(
 
 
     return NextResponse.json(
-
       {
-
         success:false,
-
-        message:"服务器错误"
-
+        message:error.message || "服务器错误"
       },
-
       {
         status:500
       }
-
     );
 
 
   }
-
 
 }
