@@ -6,13 +6,12 @@ import {
   WalletProvider
 } from "@tronweb3/tronwallet-adapter-react-hooks";
 
-import {
-  TronLinkAdapter
-} from "@tronweb3/tronwallet-adapter-tronlink";
 
 import {
+  TronLinkAdapter,
   TokenPocketAdapter
-} from "@tronweb3/tronwallet-adapter-token-pocket";
+} from "@tronweb3/tronwallet-adapters";
+
 
 
 
@@ -21,57 +20,32 @@ export default function WalletProviderWrapper({
 }) {
 
 
-  const [wallets,setWallets] = useState(null);
+  const [adapters,setAdapters] = useState([]);
+
 
 
 
   useEffect(()=>{
 
 
-    async function initWallet(){
+    const tronLink = new TronLinkAdapter();
 
 
-      const {
+    const tokenPocket = new TokenPocketAdapter({
 
-        TronLinkAdapter
+      openUrlWhenWalletNotFound:true
 
-      } = await import(
-        "@tronweb3/tronwallet-adapter-tronlink"
-      );
-
-
-
-      const {
-
-        TokenPocketAdapter
-
-      } = await import(
-        "@tronweb3/tronwallet-adapter-token-pocket"
-      );
+    });
 
 
 
-      setWallets([
+    setAdapters([
 
+      tronLink,
 
-        new TronLinkAdapter(),
+      tokenPocket
 
-
-        new TokenPocketAdapter({
-
-          openUrlWhenWalletNotFound:true
-
-        })
-
-
-      ]);
-
-
-    }
-
-
-
-    initWallet();
+    ]);
 
 
 
@@ -81,9 +55,19 @@ export default function WalletProviderWrapper({
 
 
 
-  if(!wallets){
 
-    return children;
+
+  if(adapters.length===0){
+
+
+    return (
+
+      <>
+        {children}
+      </>
+
+    );
+
 
   }
 
@@ -91,11 +75,14 @@ export default function WalletProviderWrapper({
 
 
 
+
+
   return (
+
 
     <WalletProvider
 
-      adapters={wallets}
+      adapters={adapters}
 
       autoConnect={true}
 
@@ -104,6 +91,7 @@ export default function WalletProviderWrapper({
       {children}
 
     </WalletProvider>
+
 
   );
 
