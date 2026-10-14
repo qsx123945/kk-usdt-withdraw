@@ -2,7 +2,6 @@
 
 
 import {
-  useEffect,
   useState
 } from "react";
 
@@ -27,6 +26,7 @@ type ClaimRecord = {
 
 
 
+
 export default function AdminPage(){
 
 
@@ -39,7 +39,6 @@ const [loginError,setLoginError]=useState("");
 const [records,setRecords]=useState<ClaimRecord[]>([]);
 
 const [loading,setLoading]=useState(false);
-
 
 
 
@@ -107,9 +106,7 @@ setLoginError(
 }
 
 
-
 }
-
 
 
 
@@ -129,6 +126,7 @@ const res =
 await fetch(
 "/api/admin/claims"
 );
+
 
 
 const data =
@@ -160,10 +158,7 @@ setLoading(false);
 }
 
 
-
 }
-
-
 
 
 
@@ -180,10 +175,6 @@ status:string
 ){
 
 
-try{
-
-
-const res =
 await fetch(
 
 "/api/admin/update-status",
@@ -194,8 +185,7 @@ method:"POST",
 
 headers:{
 
-"Content-Type":
-"application/json"
+"Content-Type":"application/json"
 
 },
 
@@ -212,15 +202,6 @@ status
 );
 
 
-
-const data =
-await res.json();
-
-
-
-if(data.success){
-
-
 loadRecords();
 
 
@@ -228,109 +209,34 @@ loadRecords();
 
 
 
-}catch(error){
 
 
-console.error(
-"update status error",
-error
-);
+function statusStyle(
+
+status:string
+
+){
 
 
-}
+if(status==="completed")
+
+return "text-green-400";
 
 
-}
+if(status==="failed")
+
+return "text-red-400";
 
 
+if(status==="reviewing")
+
+return "text-blue-400";
 
 
-
-
-
-if(!logged){
-
-
-return (
-
-<div className="min-h-screen bg-[#030817] text-white flex items-center justify-center p-6">
-
-
-<div className="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8">
-
-
-<h1 className="text-2xl font-bold text-center mb-8">
-
-KK 管理后台
-
-</h1>
-
-
-
-<input
-
-type="password"
-
-value={password}
-
-onChange={(e)=>
-setPassword(e.target.value)
-}
-
-placeholder="请输入管理员密码"
-
-className="w-full bg-black/20 border border-white/10 rounded-xl p-4"
-
-/>
-
-
-
-<button
-
-onClick={login}
-
-className="mt-5 w-full bg-cyan-400 text-black font-bold rounded-xl py-4"
-
->
-
-进入后台
-
-</button>
-
-
-
-{
-
-loginError &&
-
-<div className="text-red-400 text-center mt-4">
-
-{loginError}
-
-</div>
-
-}
-
-
-
-</div>
-
-
-</div>
-
-);
+return "text-yellow-400";
 
 
 }
-
-
-
-
-
-
-
-
-
 return (
 
 <div className="min-h-screen bg-[#030817] text-white p-6">
@@ -345,17 +251,148 @@ KK领取审核后台
 
 
 
-{
+<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
 
+
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+<div className="text-gray-400 text-sm">
+
+总订单
+
+</div>
+
+<div className="text-2xl font-bold">
+
+{records.length}
+
+</div>
+
+</div>
+
+
+
+
+
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+
+<div className="text-gray-400 text-sm">
+
+待审核
+
+</div>
+
+
+<div className="text-2xl font-bold text-yellow-400">
+
+{
+records.filter(
+(item)=>
+item.status==="pending"
+).length
+}
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+
+<div className="text-gray-400 text-sm">
+
+审核中
+
+</div>
+
+
+<div className="text-2xl font-bold text-blue-400">
+
+{
+records.filter(
+(item)=>
+item.status==="reviewing"
+).length
+}
+
+</div>
+
+
+</div>
+
+
+
+
+
+<div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+
+
+<div className="text-gray-400 text-sm">
+
+完成
+
+</div>
+
+
+<div className="text-2xl font-bold text-green-400">
+
+{
+records.filter(
+(item)=>
+item.status==="completed"
+).length
+}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+<button
+
+onClick={loadRecords}
+
+className="mb-8 bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl"
+
+>
+
+刷新记录
+
+</button>
+
+
+
+
+
+
+
+{
 loading &&
 
-<div>
+<div className="mb-5">
 
 加载中...
 
 </div>
 
 }
+
+
+
 
 
 
@@ -378,6 +415,8 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 >
 
 
+
+
 <div>
 
 <span className="text-gray-400">
@@ -386,13 +425,17 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 </span>
 
+
 <div className="break-all text-cyan-300">
 
 {item.wallet_address}
 
 </div>
 
+
 </div>
+
+
 
 
 
@@ -406,9 +449,14 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 </span>
 
+
 {item.amount} USDT
 
+
 </div>
+
+
+
 
 
 
@@ -416,17 +464,20 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 <div className="mt-4">
 
+
 <span className="text-gray-400">
 
 当前状态：
 
 </span>
 
-<span className="ml-2 text-yellow-300">
+
+<span className={`ml-2 ${statusStyle(item.status)}`}>
 
 {item.status}
 
 </span>
+
 
 </div>
 
@@ -434,9 +485,8 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 
 
+<div className="flex gap-3 flex-wrap mt-5">
 
-
-<div className="flex gap-3 mt-5 flex-wrap">
 
 
 <button
@@ -499,6 +549,7 @@ className="bg-red-500 px-4 py-2 rounded-xl"
 </button>
 
 
+
 </div>
 
 
@@ -530,6 +581,8 @@ className="bg-red-500 px-4 py-2 rounded-xl"
 
 
 
+
+
 <div className="mt-4 text-gray-500 text-sm">
 
 {
@@ -546,7 +599,6 @@ item.created_at
 
 
 
-
 </div>
 
 
@@ -556,16 +608,12 @@ item.created_at
 }
 
 
-</div>
-
-
-
-
 
 </div>
 
+
+</div>
 
 );
-
 
 }
