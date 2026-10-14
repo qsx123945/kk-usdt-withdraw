@@ -39,6 +39,10 @@ const [loading,setLoading]=useState(false);
 
 const [search,setSearch]=useState("");
 
+const [copyText,setCopyText]=useState("");
+
+const [lastRefresh,setLastRefresh]=useState("");
+
 
 
 
@@ -116,6 +120,24 @@ setLoginError(
 
 
 
+function logout(){
+
+
+setLogged(false);
+
+setPassword("");
+
+setRecords([]);
+
+
+}
+
+
+
+
+
+
+
 async function loadRecords(){
 
 
@@ -143,6 +165,15 @@ data.records || []
 
 
 
+setLastRefresh(
+
+new Date()
+.toLocaleString()
+
+);
+
+
+
 }catch(error){
 
 
@@ -163,6 +194,7 @@ setLoading(false);
 
 
 }
+
 
 
 
@@ -209,8 +241,8 @@ status
 );
 
 
-loadRecords();
 
+loadRecords();
 
 
 }catch(error){
@@ -225,6 +257,56 @@ error
 
 
 }
+
+
+
+
+
+
+
+async function copyValue(
+
+value:string,
+
+text:string
+
+){
+
+
+try{
+
+
+await navigator.clipboard.writeText(
+value
+);
+
+
+setCopyText(
+text
+);
+
+
+
+setTimeout(()=>{
+
+setCopyText("");
+
+},1500);
+
+
+
+}catch(error){
+
+
+console.error(error);
+
+
+}
+
+
+}
+
+
 
 
 
@@ -255,6 +337,8 @@ return "text-yellow-400";
 
 
 }
+
+
 
 
 
@@ -291,6 +375,7 @@ return (
 KK 管理后台
 
 </h1>
+
 
 
 
@@ -361,16 +446,40 @@ loginError &&
 
 
 
+
 return (
 
 <div className="min-h-screen bg-[#030817] text-white p-6">
 
 
-<h1 className="text-3xl font-bold mb-8">
+<div className="flex justify-between items-center mb-8 flex-wrap gap-4">
+
+
+<h1 className="text-3xl font-bold">
 
 KK领取审核后台
 
 </h1>
+
+
+
+
+<button
+
+onClick={logout}
+
+className="bg-red-500 px-5 py-2 rounded-xl"
+
+>
+
+退出后台
+
+</button>
+
+
+
+</div>
+
 
 
 
@@ -398,6 +507,8 @@ KK领取审核后台
 
 
 </div>
+
+
 
 
 
@@ -436,6 +547,8 @@ item.status==="pending"
 
 
 
+
+
 <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
 
 
@@ -464,6 +577,8 @@ item.status==="reviewing"
 
 
 </div>
+
+
 
 
 
@@ -500,9 +615,17 @@ item.status==="completed"
 
 
 
+
+
 </div>
 
 
+
+
+
+
+
+<div className="flex flex-col md:flex-row gap-4 mb-6">
 
 
 
@@ -510,14 +633,13 @@ item.status==="completed"
 
 onClick={loadRecords}
 
-className="bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl mb-5"
+className="bg-cyan-400 text-black font-bold px-6 py-3 rounded-xl"
 
 >
 
 刷新记录
 
 </button>
-
 
 
 
@@ -535,19 +657,83 @@ setSearch(e.target.value)
 
 placeholder="搜索钱包地址"
 
-className="w-full mb-8 bg-white/5 border border-white/10 rounded-xl p-4"
+className="flex-1 bg-white/5 border border-white/10 rounded-xl p-4"
 
 />
+
+
+
+</div>
+
+
+
+
+
+
+
 {
-loading &&
 
-<div className="mb-5">
+lastRefresh &&
 
-加载中...
+<div className="text-gray-500 text-sm mb-5">
+
+最后刷新：
+
+{lastRefresh}
 
 </div>
 
 }
+
+
+
+
+
+
+{
+
+copyText &&
+
+<div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-green-500 text-black px-5 py-3 rounded-xl">
+
+{copyText}
+
+</div>
+
+}
+{
+
+records.length===0 && !loading &&
+
+<div className="bg-white/5 border border-white/10 rounded-2xl p-10 text-center">
+
+
+<div className="text-4xl mb-4">
+
+📭
+
+</div>
+
+
+<div className="text-xl font-bold">
+
+暂无领取记录
+
+</div>
+
+
+<div className="text-gray-400 mt-2">
+
+等待用户提交领取
+
+</div>
+
+
+</div>
+
+}
+
+
 
 
 
@@ -572,68 +758,47 @@ className="bg-white/5 border border-white/10 rounded-2xl p-5"
 
 
 
+
+
 <div>
 
 <div className="text-gray-400">
 
-钱包地址：
+钱包地址
 
 </div>
 
 
-<div className="break-all text-cyan-300">
+<div className="break-all text-cyan-300 mt-1">
 
 {item.wallet_address}
 
 </div>
 
 
-</div>
+
+<button
+
+onClick={()=>
 
 
+copyValue(
 
+item.wallet_address,
 
+"钱包地址已复制"
 
+)
 
-<div className="mt-4">
+}
 
-
-<span className="text-gray-400">
-
-领取金额：
-
-</span>
-
-
-{item.amount} USDT
-
-
-</div>
-
-
-
-
-
-
-<div className="mt-4">
-
-
-<span className="text-gray-400">
-
-当前状态：
-
-</span>
-
-
-<span
-
-className={`ml-2 ${statusStyle(item.status)}`}
+className="mt-3 bg-white/10 px-4 py-2 rounded-xl text-sm"
 
 >
 
-{item.status}
+复制地址
 
-</span>
+</button>
 
 
 </div>
@@ -645,7 +810,60 @@ className={`ml-2 ${statusStyle(item.status)}`}
 
 
 
-<div className="flex gap-3 flex-wrap mt-5">
+<div className="mt-5">
+
+
+<div className="text-gray-400">
+
+领取金额
+
+</div>
+
+
+<div className="text-xl font-bold">
+
+{item.amount} USDT
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div className="mt-5">
+
+
+<div className="text-gray-400">
+
+当前状态
+
+</div>
+
+
+
+<div className={`mt-1 ${statusStyle(item.status)} font-bold`}>
+
+{item.status}
+
+</div>
+
+
+</div>
+
+
+
+
+
+
+
+
+<div className="flex flex-wrap gap-3 mt-5">
 
 
 
@@ -662,7 +880,6 @@ item.id,
 
 )
 
-
 }
 
 className="bg-blue-500 px-4 py-2 rounded-xl"
@@ -672,7 +889,6 @@ className="bg-blue-500 px-4 py-2 rounded-xl"
 审核中
 
 </button>
-
 
 
 
@@ -691,7 +907,6 @@ item.id,
 
 )
 
-
 }
 
 className="bg-green-500 px-4 py-2 rounded-xl"
@@ -701,7 +916,6 @@ className="bg-green-500 px-4 py-2 rounded-xl"
 完成
 
 </button>
-
 
 
 
@@ -719,7 +933,6 @@ item.id,
 "failed"
 
 )
-
 
 }
 
@@ -742,23 +955,50 @@ className="bg-red-500 px-4 py-2 rounded-xl"
 
 
 
-<div className="mt-5">
+
+<div className="mt-6">
 
 
 <div className="text-gray-400">
 
-交易哈希：
+交易哈希
 
 </div>
 
 
-<div className="break-all text-sm">
+<div className="break-all text-sm mt-1">
 
 {item.tx_id}
 
 </div>
 
 
+
+
+<button
+
+onClick={()=>
+
+
+copyValue(
+
+item.tx_id,
+
+"交易哈希已复制"
+
+)
+
+}
+
+className="mt-3 bg-white/10 px-4 py-2 rounded-xl text-sm"
+
+>
+
+复制TX
+
+</button>
+
+
 </div>
 
 
@@ -768,7 +1008,8 @@ className="bg-red-500 px-4 py-2 rounded-xl"
 
 
 
-<div className="mt-4 text-gray-500 text-sm">
+
+<div className="mt-5 text-gray-500 text-sm">
 
 {
 
@@ -789,7 +1030,6 @@ item.created_at
 
 
 
-
 </div>
 
 
@@ -803,9 +1043,12 @@ item.created_at
 </div>
 
 
+
+
+
+
 </div>
 
 );
-
 
 }
