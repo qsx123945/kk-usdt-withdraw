@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
 // App Router 指定使用nodejs运行时，解决fetch failed
 export const runtime = 'nodejs';
-
 export async function POST(
   request: Request
 ) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-
     if (!supabaseUrl || !supabaseKey) {
       console.error("Missing Supabase environment variables");
       return NextResponse.json(
@@ -23,10 +19,8 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       );
     }
     const supabase = createClient(supabaseUrl, supabaseKey);
-
     const body = await request.json();
     const { address, amount, txId, time } = body;
-
     if (!address || !amount || !txId) {
       return NextResponse.json(
         {
@@ -36,13 +30,11 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         { status:400 }
       );
     }
-
     const { data: existing, error: checkError } = await supabase
       .from("claim_records")
       .select("id")
       .eq("tx_id", txId)
       .maybeSingle();
-
     if(checkError){
       console.error("Supabase check error", checkError);
     }
@@ -52,17 +44,14 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         message:"该交易已经记录"
       });
     }
-
     const { error } = await supabase
       .from("claim_records")
       .insert({
         wallet_address: address,
         amount: String(amount),
         tx_id: txId,
-        status: "pending",
         created_at: time || new Date().toISOString()
       });
-
     if(error){
       console.error("Supabase insert error", error);
       return NextResponse.json(
@@ -73,7 +62,6 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
         { status:500 }
       );
     }
-
     return NextResponse.json({
       success:true,
       message:"保存成功"
